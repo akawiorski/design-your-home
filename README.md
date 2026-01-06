@@ -1,94 +1,144 @@
-# 10x Astro Starter
+# Home Inspiration Generator
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+Home Inspiration Generator is a web app that helps users generate realistic interior design inspirations for specific rooms, based on their own photos of unfinished spaces plus a set of inspiration images. It also provides short, practical bullet-point suggestions (e.g., zoning, lighting) to support early decision making before meeting an architect or starting renovation.
 
-## Tech Stack
+## Table of contents
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+1. [Project name](#project-name)
+2. [Project description](#project-description)
+3. [Tech stack](#tech-stack)
+4. [Getting started locally](#getting-started-locally)
+5. [Available scripts](#available-scripts)
+6. [Project scope](#project-scope)
+7. [Project status](#project-status)
+8. [License](#license)
 
-## Prerequisites
+## Project name
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+Home Inspiration Generator
 
-## Getting Started
+## Project description
 
-1. Clone the repository:
+The core flow in MVP:
+
+- Add rooms to the default apartment from predefined room types (e.g., kitchen, bathroom, bedroom, living room).
+- Select a room to work on (all actions are scoped to the active room).
+- Upload images per room:
+	- minimum: 1 “unfinished room” photo and 2 inspiration photos,
+	- formats: `jpg`, `png`, `heic`,
+	- total upload limit: up to 10 files,
+	- optional short description per photo.
+- Generate inspiration variants for the selected room:
+	- each variant is an “inspiration card” with 2 images of the same idea,
+	- output format: `jpg`, resolution: 1080×720,
+	- each variant includes short bullet-point suggestions.
+- Generate multiple variants for the same room (with daily limits):
+	- max 5 variants/day per authenticated user,
+	- for anonymous users the limit is enforced per device/browser.
+- Save an inspiration card:
+	- saving requires authentication (soft-gate),
+	- user provides a name (and optional style),
+	- saved cards are assigned to a room,
+	- saved inspirations are private per user.
+
+Analytics (MVP): record the `InspirationSaved` event.
+
+## Tech stack
+
+Frontend:
+
+- [Astro 5](https://astro.build/) (with Node adapter)
+- [React 19](https://react.dev/)
+- [TypeScript 5](https://www.typescriptlang.org/)
+- [Tailwind CSS 4](https://tailwindcss.com/)
+- [shadcn/ui](https://ui.shadcn.com/) (Radix primitives, class-variance-authority, lucide-react)
+
+Backend:
+
+- [Supabase](https://supabase.com/) (Auth, Postgres, Storage, RLS)
+
+AI:
+
+- [OpenRouter](https://openrouter.ai/) (AI model routing)
+
+CI/CD & hosting:
+
+- GitHub Actions (planned)
+- DigitalOcean (planned)
+
+## Getting started locally
+
+### Prerequisites
+
+- Node.js `22.14.0` (see `.nvmrc`)
+- npm (bundled with Node)
+
+If you use `nvm`:
 
 ```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
+nvm install
+nvm use
 ```
 
-2. Install dependencies:
+### Install & run
 
 ```bash
 npm install
-```
-
-3. Run the development server:
-
-```bash
 npm run dev
 ```
 
-4. Build for production:
+Then open the URL printed by Astro (typically `http://localhost:4321`).
+
+### Build & preview
 
 ```bash
 npm run build
+npm run preview
 ```
 
-## Available Scripts
+## Available scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+| Script | Description |
+|---|---|
+| `npm run dev` | Start Astro dev server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview the production build locally |
+| `npm run astro` | Run the Astro CLI |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Fix ESLint issues |
+| `npm run format` | Format files with Prettier |
 
-## Project Structure
+## Project scope
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+In scope (MVP):
 
-## AI Development Support
+- Single default apartment project with a room list
+- Add/select rooms (predefined room types)
+- Per-room image upload with validation (min 1 room photo + min 2 inspiration photos, max 10 files)
+- Generate inspiration variants per room (2 images + bullet-point suggestions)
+- Daily generation limits (5/day) for authenticated users, and per-device/browser enforcement for anonymous users
+- Soft-gate authentication when saving inspirations
+- Save inspirations to a private user gallery with filtering by room
+- Analytics event: `InspirationSaved`
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+Out of scope (MVP):
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+- Mobile app (web-only)
+- Non-image documents (no PDF/DOC)
+- Data deletion flows and defined retention policy
+- Detailed technical plans, furniture layouts, and dimensioning
+- Sharing inspirations with other users
+- Multiple apartment projects (create/delete/switch projects)
 
-### Cursor IDE
+## Project status
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
+MVP is in development.
 
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+- Generation is limited to 5 variants/day per user (or per device/browser for anonymous usage).
+- Saving inspirations requires authentication (soft-gate).
 
 ## License
 
-MIT
+No license has been specified yet.
+
+If you intend this repository to be open source, add a `LICENSE` file (e.g., MIT) and set the `license` field in `package.json`.
