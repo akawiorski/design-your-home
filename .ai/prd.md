@@ -51,8 +51,7 @@ Aplikacja rozwiązuje te problemy, generując realistyczne wizualizacje dopasowa
   - format: jpg, rozdzielczość 1080×720 px.
 - Do każdego wariantu generowane są krótkie bullet points z ogólnymi sugestiami funkcjonalnymi (np. strefowanie, oświetlenie).
 - Możliwość wygenerowania kolejnego wariantu dla tego samego pomieszczenia.
-- Limit generacji: maksymalnie 5 wariantów dziennie na użytkownika.
-- Dla użytkowników bez konta limit egzekwowany per urządzenie/przeglądarka.
+- Limit generacji: kontrolowany przez dostępne kredyty w LLM, bez twardego limitu dziennego w aplikacji.
 
 ### 3.6 Zapis inspiracji
 - Możliwość zapisania pojedynczego wariantu jako karty inspiracji.
@@ -126,18 +125,10 @@ Tytuł: Generowanie kolejnego wariantu
 Opis: Jako użytkownik chcę wygenerować kolejny wariant, aby porównać różne pomysły.  
 Kryteria akceptacji:
 - Każda generacja tworzy nową kartę.
-- System respektuje limit 5 wariantów dziennie.
+- System działa w ramach dostępnych kredytów LLM.
 
 ### US-007
 ID: US-007  
-Tytuł: Obsługa limitu generacji  
-Opis: Jako użytkownik chcę być poinformowany o przekroczeniu limitu generacji.  
-Kryteria akceptacji:
-- System blokuje generowanie po przekroczeniu limitu.
-- Wyświetlany jest jasny komunikat.
-
-### US-008
-ID: US-008  
 Tytuł: Zapis inspiracji przez zalogowanego użytkownika  
 Opis: Jako zalogowany użytkownik chcę zapisać wybrany wariant, aby wrócić do niego później.  
 Kryteria akceptacji:
@@ -145,16 +136,16 @@ Kryteria akceptacji:
 - Inspiracja pojawia się w galerii.
 - Rejestrowane jest zdarzenie InspirationSaved.
 
-### US-009
-ID: US-009  
+### US-008
+ID: US-008  
 Tytuł: Soft-gate przy zapisie inspiracji  
 Opis: Jako niezalogowany użytkownik chcę zostać poproszony o założenie konta przy zapisie inspiracji.  
 Kryteria akceptacji:
 - Próba zapisu uruchamia rejestrację lub logowanie.
 - Po zalogowaniu zapis jest kontynuowany.
 
-### US-010
-ID: US-010  
+### US-009
+ID: US-009  
 Tytuł: Uwierzytelnianie i bezpieczny dostęp  
 Opis: Jako użytkownik chcę mieć pewność, że tylko ja mam dostęp do moich zapisanych inspiracji.  
 Kryteria akceptacji:
@@ -162,16 +153,16 @@ Kryteria akceptacji:
 - Użytkownik widzi wyłącznie swoje dane.
 - Sesja użytkownika działa poprawnie po zalogowaniu i wylogowaniu.
 
-### US-011
-ID: US-011  
+### US-010
+ID: US-010  
 Tytuł: Przeglądanie galerii zapisanych inspiracji  
 Opis: Jako użytkownik chcę przeglądać zapisane inspiracje i filtrować je po pomieszczeniu.  
 Kryteria akceptacji:
 - Galeria wyświetla wszystkie zapisane karty.
 - Dostępny jest filtr po pomieszczeniu.
 
-### US-012
-ID: US-012  
+### US-011
+ID: US-011  
 Tytuł: Obsługa błędów generacji  
 Opis: Jako użytkownik chcę otrzymać czytelną informację, gdy generacja się nie powiedzie.  
 Kryteria akceptacji:
