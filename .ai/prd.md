@@ -7,6 +7,8 @@ Na etapie MVP użytkownik pracuje zawsze w obrębie jednego, domyślnego projekt
 
 W tej iteracji MVP nie zapisujemy wygenerowanych inspiracji w bazie danych ani nie budujemy galerii zapisów — zostaje wyłącznie generowanie.
 
+W tej iteracji MVP pierwszym krokiem jest logowanie (brak trybu anonimowego i brak soft-gate).
+
 ## 2. Problem użytkownika
 Użytkownicy planujący wykończenie lub remont mieszkania:
 - mają trudność z wyobrażeniem sobie efektu końcowego na podstawie pustych lub niewykończonych pomieszczeń,
@@ -20,6 +22,7 @@ Aplikacja rozwiązuje te problemy, generując realistyczne wizualizacje dopasowa
 
 ### 3.1 Zarządzanie użytkownikiem
 - Rejestracja i logowanie użytkownika (np. email + hasło).
+- Dostęp do aplikacji wymaga logowania (od pierwszego kroku).
 - Dane użytkownika są niedostępne dla innych użytkowników.
 
 ### 3.2 Struktura mieszkania

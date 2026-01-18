@@ -6,7 +6,7 @@
 3. Brak walidacji w DB dla kompletności uploadu: minimum 1 zdjęcie pomieszczenia i 2 inspiracje oraz limity plików (np. max 10) egzekwowane w aplikacji, nie przez CHECK/trigger.
 4. Brak persystencji wygenerowanych inspiracji w MVP: wynik generacji (bullet points + 2 obrazy) jest zwracany z API bez zapisu w Postgres.
 6. Limit generacji: egzekwowany na poziomie wejścia do LLM (kontrola przez kredyty), bez tabel w bazie danych.
-7. Goście (bez konta): brak danych domenowych w DB dla gości; stan po stronie klienta.
+7. Brak trybu anonimowego w tej iteracji MVP: użytkownik loguje się jako pierwszy krok.
 8. Tabela słownikowa typów pomieszczeń: room_types + FK z rooms.
 9. Soft delete: używać deleted_at (co najmniej dla rooms, room_photos), filtrować w aplikacji.
 10. Analityka: jedna tabela analytics_events z event_type + event_data (JSONB).
@@ -49,7 +49,7 @@
 
 ### Bezpieczeństwo i skalowalność
 1. RLS: pełna izolacja danych per użytkownik (projekty/pomieszczenia/zdjęcia/generacje/zapisy).
-2. Goście: minimalizacja ryzyka przez brak danych domenowych w DB; pełna funkcjonalność bez konieczności przechowywania stanu w bazie.
+2. Brak trybu anonimowego w MVP: uproszczona autoryzacja (zawsze mamy kontekst user_id).
 3. Storage: prywatne ścieżki per użytkownik; w DB przechowujemy storage_path; polityki Storage powiązane z auth.uid() i rekordami DB.
 4. Indeksy: na FK i typowe listowania (rooms po projekcie, photos po room, analytics po czasie/typie).
 5. Soft delete: deleted_at dla zachowania historii i analityki; opcjonalnie partial indexes dla aktywnych rekordów.

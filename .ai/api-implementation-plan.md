@@ -3,7 +3,7 @@
 ## 1. Przegląd punktu końcowego
 - Cel: Wygenerowanie wariantu inspiracji dla wskazanego pokoju na podstawie zdjęć wejściowych i opcjonalnego promptu użytkownika.
 - Efekt: Zwraca `GeneratedInspirationDTO` z bullet points i dwoma obrazami wraz z podpisanymi URL-ami.
-- Reguły biznesowe: Wymaga min. 1 zdjęcia typu `room` i 2 zdjęć typu `inspiration`; zawsze tworzy 2 obrazy (position 1 i 2); opcjonalny prompt (<= 200 znaków); w tej iteracji brak auth/ownership.
+- Reguły biznesowe: Wymaga min. 1 zdjęcia typu `room` i 2 zdjęć typu `inspiration`; zawsze tworzy 2 obrazy (position 1 i 2); opcjonalny prompt (<= 200 znaków); wymaga auth + ownership.
 
 ## 2. Szczegóły żądania
 - Metoda HTTP: POST
@@ -13,7 +13,7 @@
   - Opcjonalne (query): brak
 - Request Body (JSON):
   - `prompt?: string` (<= 200 znaków)
-- Nagłówki: brak specjalnych wymagań (brak auth w tej iteracji)
+- Nagłówki: `Authorization: Bearer <token>` (wymagane)
 
 ## 3. Wykorzystywane typy
 - Command: `GenerateInspirationCommand`
@@ -30,8 +30,8 @@
 - 500 Internal Server Error / 503 Service Unavailable – błąd AI lub storage
 
 ## 5. Przepływ danych
-1) Autoryzacja: pomijamy (brak obsługi JWT / ownership).
-2) Weryfikacja pokoju: SELECT room z `rooms`; 404 gdy brak (bez sprawdzania ownership).
+1) Autoryzacja: wymagane JWT (Supabase Auth). 401 gdy brak/niepoprawny.
+2) Weryfikacja pokoju + ownership: SELECT room z `rooms` z filtrem po userId; 404/403 gdy brak dostępu.
 3) Zlicz zdjęcia: SELECT z `room_photos` (WHERE deleted_at IS NULL) grupując po photo_type; sprawdź minima (>=1 room, >=2 inspiration). 400 przy naruszeniu.
 4) Przygotuj payload do AI: signed URLs lub publiczne ścieżki zdjęć; prompt optional.
 5) Wywołaj OpenRouter: oczekuj 2 obrazy (1080x720) + 4-6 bullet points.
@@ -41,9 +41,9 @@
 9) Zwróć DTO.
 
 ## 6. Względy bezpieczeństwa
-- Auth: pomijamy w tej iteracji (publiczny dostęp; brak ownership check).
-- RLS: endpoint może używać service_role; na razie bez filtrowania ownership — do dodania później.
-- Rate limiting: 20 generacji/h per IP (brak user context).
+- Auth: wymagane.
+- RLS: można oprzeć się o RLS (JWT) lub service_role + jawne filtrowanie po userId.
+- Rate limiting: 20 generacji/h per user.
 - Walidacja wejścia: Zod (uuid roomId, prompt length, typy string).
 - Storage path sanitization: nie przyjmuj ścieżek z klienta – generuj na serwerze.
 - CORS: wg globalnej konfiguracji.
@@ -69,9 +69,9 @@
 1) Dodaj plik endpointu: `src/pages/api/rooms/[roomId]/generate.ts` (Astro API route, `export const prerender = false`).
 2) Zdefiniuj schemat Zod dla params/query/body (uuid roomId, optional prompt <=200).
 3) Pobierz supabase client z `context.locals.supabase` (service role, odpowiedni typ z `src/db/supabase.client.ts`).
-4) (Brak auth/ownership w tej iteracji) przejdź dalej.
+4) Wymuś auth i sprawdź ownership pokoju.
 5) Zlicz zdjęcia: SELECT photo_type, COUNT(*) FROM room_photos WHERE room_id = roomId AND deleted_at IS NULL GROUP BY photo_type; waliduj minima.
-6) Waliduj limity generacji (rate limiter per IP) – 429 w razie przekroczenia.
+6) Waliduj limity generacji (rate limiter per user) – 429 w razie przekroczenia.
 7) Pobierz potrzebne zdjęcia (URLs) do AI: SELECT storage_path, photo_type LIMIT wymagane; wygeneruj signed URLs do wejścia dla AI.
 8) Zbuduj prompt do OpenRouter (context + opcjonalny user prompt) i wywołaj AI; obsłuż timeout/503.
 9) Upload wygenerowanych obrazów do Supabase Storage (`generated/` path), uzyskaj storage_path dla obu pozycji.

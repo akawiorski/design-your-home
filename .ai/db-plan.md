@@ -86,7 +86,7 @@ Zdarzenia analityczne w formacie uniwersalnym (opcjonalne w MVP).
 | id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator zdarzenia |
 | event_type | TEXT | NOT NULL | Typ zdarzenia (np. 'InspirationGenerated') |
 | event_data | JSONB | NOT NULL | Dane zdarzenia w formacie JSONB |
-| user_id | UUID | NULL | Odniesienie do auth.users (nullable dla gości) |
+| user_id | UUID | NOT NULL | Odniesienie do auth.users |
 | created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data zdarzenia |
 
 **Ograniczenia:**
@@ -129,7 +129,7 @@ analytics_events
 | projects | rooms | 1:N | Jeden projekt ma wiele pomieszczeń |
 | room_types | rooms | 1:N | Jeden typ pomieszczenia może być użyty w wielu pomieszczeniach |
 | rooms | room_photos | 1:N | Jedno pomieszczenie ma wiele zdjęć |
-| auth.users | analytics_events | 1:N | Jeden użytkownik generuje wiele zdarzeń analitycznych (user_id może być NULL dla gości) |
+| auth.users | analytics_events | 1:N | Jeden użytkownik generuje wiele zdarzeń analitycznych |
 
 ---
 

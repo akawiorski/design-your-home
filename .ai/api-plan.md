@@ -396,7 +396,7 @@ List photos for a specific room.
 
 Track an analytics event.
 
-**Authentication:** Optional (works for both authenticated and anonymous users)
+**Authentication:** Required (authenticated user)
 
 **Request Body:**
 ```json
@@ -470,12 +470,8 @@ Track an analytics event.
 - Ownership checks for room-based operations
 
 **Access Control:**
-- **Public (no auth):**
-  - GET /api/room-types
-  - POST /api/rooms/{roomId}/generate
-  
-- **Authenticated:**
-  - All project, room, and photo operations
+- **Authenticated (required for all endpoints in this MVP):**
+  - Room types, projects, rooms, photos, generation, analytics
   - User can only access their own resources
 
 ### 3.3 Service Role Key Usage
@@ -534,7 +530,7 @@ async function validateRoomOwnership(roomId: string, userId: string) {
 #### Analytics Events
 - `eventType`: required, string
 - `eventData`: required, valid JSON object
-- `userId`: optional (null for anonymous)
+- `userId`: required (authenticated user)
 
 ### 4.2 Business Logic Implementation
 
@@ -647,7 +643,6 @@ async function validatePhotoRequirements(roomId: string) {
 
 **Strategy:**
 - Per-user rate limiting for authenticated users
-- Per-IP rate limiting for anonymous users
 - Generous limits for MVP, can tighten based on usage
 
 **Limits (MVP):**
@@ -817,24 +812,14 @@ API_BASE_URL=https://api.yourdomain.com
 
 ### Workflow 1: New User Generates First Inspiration
 
-1. **User visits app (anonymous)**
-2. **Create room:** `POST /api/rooms` → 401 Unauthorized
-3. **User signs up/logs in** via Supabase Auth
-4. **Get default project:** `GET /api/projects` → Auto-created
+1. **User signs up/logs in** via Supabase Auth
+2. **Get default project:** `GET /api/projects` → Auto-created
 5. **Create room:** `POST /api/rooms` with `roomTypeId: 1`
 6. **Get upload URLs:** `POST /api/rooms/{roomId}/photos/upload-url` × 3 times
 7. **Upload photos** directly to Supabase Storage
 8. **Create photo records:** `POST /api/rooms/{roomId}/photos` × 3 times
 9. **Generate inspiration:** `POST /api/rooms/{roomId}/generate`
 10. **View result:** Inspiration with 2 images + bullet points
-
-### Workflow 2: Anonymous User
-
-1. **User visits app (anonymous)**
-2. **Browse room types:** `GET /api/room-types` ✅ Works
-3. **Attempt to create room:** `POST /api/rooms` → 401 Unauthorized
-4. **Prompt to log in/sign up**
-5. **After auth, continue with room creation**
 
 ---
 

@@ -43,14 +43,15 @@ MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: p
 
 ### Limity i kontrola użycia
 * Limit generacji: użytkownik może wygenerować maksymalnie 5 wariantów dziennie (limit oparty o zdarzenie GenerationCompleted).
-* Dla użytkowników bez konta limit egzekwowany per urządzenie/przeglądarka (cookie/local storage).
+* W tej iteracji MVP aplikacja wymaga logowania — limity są egzekwowane per użytkownik.
 
 ### Doświadczenie użytkownika (wysoki poziom)
-1.	Użytkownik tworzy projekt mieszkania.
-2.	Dodaje pomieszczenie z listy.
-3.	Uploaduje 1 zdjęcie pomieszczenia + 2 inspiracje (oznaczone jako to pomieszczenie).
-4.	Klika „Generuj” i otrzymuje wariant (karta) z 2 ujęciami + bullet points z sugestiami.
-5.	Może wygenerować kolejny wariant (aż do limitu dziennego).
+1.	Użytkownik loguje się / tworzy konto.
+2.	Użytkownik tworzy projekt mieszkania.
+3.	Dodaje pomieszczenie z listy.
+4.	Uploaduje 1 zdjęcie pomieszczenia + 2 inspiracje (oznaczone jako to pomieszczenie).
+5.	Klika „Generuj” i otrzymuje wariant (karta) z 2 ujęciami + bullet points z sugestiami.
+6.	Może wygenerować kolejny wariant (aż do limitu dziennego).
 
 ## Analityka i kryteria sukcesu
 
