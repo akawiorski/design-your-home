@@ -31,7 +31,6 @@ Pomieszczenia przypisane bezpośrednio do użytkownika (bez koncepcji projektu w
 | room_type_id | INTEGER | NOT NULL, FOREIGN KEY | Odniesienie do room_types.id |
 | created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
 | updated_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data ostatniej modyfikacji |
-| deleted_at | TIMESTAMP WITH TIME ZONE | NULL | Data soft delete |
 
 **Ograniczenia:**
 - `FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE`
@@ -50,7 +49,6 @@ Zdjęcia wejściowe przypisane do pomieszczenia: zdjęcia "pomieszczenia" oraz "
 | storage_path | TEXT | NOT NULL | Ścieżka do pliku w Supabase Storage |
 | description | TEXT | NULL | Opcjonalny opis zdjęcia |
 | created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
-| deleted_at | TIMESTAMP WITH TIME ZONE | NULL | Data soft delete |
 
 **ENUM:**
 ```sql
@@ -120,11 +118,11 @@ analytics_events
 
 ```sql
 -- rooms
-CREATE INDEX idx_rooms_user_id ON rooms(user_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_rooms_user_id ON rooms(user_id);
 CREATE INDEX idx_rooms_room_type_id ON rooms(room_type_id);
 
 -- room_photos
-CREATE INDEX idx_room_photos_room_id ON room_photos(room_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_room_photos_room_id ON room_photos(room_id);
 CREATE INDEX idx_room_photos_photo_type ON room_photos(photo_type);
 
 -- analytics_events
@@ -134,7 +132,6 @@ CREATE INDEX idx_analytics_events_user_id_created_at ON analytics_events(user_id
 
 ### 3.2 Uzasadnienie indeksów
 
-- **rooms, room_photos:** Partial indexes z `WHERE deleted_at IS NULL` dla wydajności listowania aktywnych rekordów (soft delete).
 - **analytics_events:** Composite indexes dla typowych zapytań analitycznych (po typie zdarzenia i czasie, po użytkowniku i czasie).
 
 ---
@@ -166,11 +163,6 @@ CREATE POLICY insert_own_rooms ON rooms
 CREATE POLICY update_own_rooms ON rooms
     FOR UPDATE
     USING (auth.uid() = user_id);
-
--- DELETE: Użytkownik może usuwać tylko swoje pomieszczenia
-CREATE POLICY delete_own_rooms ON rooms
-    FOR DELETE
-    USING (auth.uid() = user_id);
 ```
 
 ### 4.3 Polityki RLS dla room_photos
@@ -201,17 +193,6 @@ CREATE POLICY insert_own_room_photos ON room_photos
 -- UPDATE: Użytkownik może aktualizować tylko zdjęcia ze swoich pomieszczeń
 CREATE POLICY update_own_room_photos ON room_photos
     FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM rooms
-            WHERE rooms.id = room_photos.room_id
-            AND rooms.user_id = auth.uid()
-        )
-    );
-
--- DELETE: Użytkownik może usuwać tylko zdjęcia ze swoich pomieszczeń
-CREATE POLICY delete_own_room_photos ON room_photos
-    FOR DELETE
     USING (
         EXISTS (
             SELECT 1 FROM rooms
@@ -253,35 +234,29 @@ CREATE POLICY select_room_types ON room_types
 
 ## 5. Dodatkowe uwagi i wyjaśnienia
 
-### 5.1 Soft Delete
-- Tabele `rooms`, `room_photos` używają `deleted_at` do soft delete.
-- Partial indexes z `WHERE deleted_at IS NULL` zapewniają wydajność dla zapytań dotyczących aktywnych rekordów.
-- Filtrowanie rekordów usuniętych odbywa się po stronie aplikacji.
-
-### 5.2 Storage Path
+### 5.1 Storage Path
 - Kolumna `storage_path` w tabeli `room_photos` przechowuje ścieżkę do pliku w Supabase Storage (nie publiczny URL).
 - Organizacja ścieżek: `<user_id>/<room_id>/<photo_id>.<ext>` lub podobna struktura.
 - Polityki Supabase Storage oparte o `auth.uid()` i powiązania z tabelami DB.
 
-### 5.3 Analytics Events
+### 5.2 Analytics Events
 - `event_data` jako JSONB pozwala na elastyczne rozszerzanie struktury zdarzeń bez zmian w schemacie.
 - RLS blokuje odczyt dla klientów – tylko INSERT jest dozwolony.
 - Backend może czytać zdarzenia przez `service_role` key.
 
-### 5.7 Formatowanie i Typy
+### 5.6 Formatowanie i Typy
 - UUID dla wszystkich ID (wyjątek: room_types używa SERIAL).
 - TIMESTAMP WITH TIME ZONE dla wszystkich dat.
 - ENUM dla `photo_type`.
 - JSONB dla `event_data`.
 
-### 5.8 Walidacja
+### 5.7 Walidacja
 - Minimalna walidacja w DB (np. `CHECK (position IN (1, 2))`).
 - Większość walidacji (np. min 1 zdjęcie pomieszczenia, 2 inspiracje, max 10 plików) egzekwowana po stronie aplikacji.
 - Limit generacji (5 wariantów dziennie) egzekwowany na poziomie wejścia do LLM, nie w bazie danych.
 
-### 5.9 Skalowalność
+### 5.8 Skalowalność
 - Indeksy na FK i typowe filtry zapewniają wydajność.
-- Soft delete umożliwia zachowanie historii bez usuwania danych.
 - JSONB dla event_data umożliwia elastyczne rozszerzanie analityki.
 - Struktura DB pozwala na przyszłą rozbudowę (np. współdzielenie inspiracji lub grupowanie pokoi w przyszłości).
 
@@ -295,7 +270,6 @@ SELECT r.id, r.user_id, rt.display_name AS room_type, r.created_at
 FROM rooms r
 JOIN room_types rt ON rt.id = r.room_type_id
 WHERE r.user_id = auth.uid()
-AND r.deleted_at IS NULL
 ORDER BY r.created_at DESC;
 ```
 
@@ -318,7 +292,6 @@ Schemat bazy danych spełnia wszystkie wymagania PRD i decyzje z sesji planowani
 - ✅ Upload zdjęć (room_photos) z rozróżnieniem photo_type (ENUM)
 - ✅ Generowanie inspiracji bez persystencji wyników w Postgres (w MVP)
 - ✅ Limit generacji egzekwowany na poziomie wejścia do LLM (nie w DB)
-- ✅ Soft delete (deleted_at) dla historii
 - ✅ Analityka (analytics_events) w formacie JSONB
 - ✅ RLS: pełna izolacja danych per użytkownik
 - ✅ Storage: storage_path w DB (nie URL)

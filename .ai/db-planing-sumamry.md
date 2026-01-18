@@ -8,7 +8,6 @@
 6. Limit generacji: egzekwowany na poziomie wejścia do LLM (kontrola przez kredyty), bez tabel w bazie danych.
 7. Brak trybu anonimowego w tej iteracji MVP: użytkownik loguje się jako pierwszy krok.
 8. Tabela słownikowa typów pomieszczeń: room_types + FK z rooms.
-9. Soft delete: używać deleted_at (co najmniej dla rooms, room_photos), filtrować w aplikacji.
 10. Analityka: jedna tabela analytics_events z event_type + event_data (JSONB).
 11. RLS: użytkownik ma dostęp tylko do swoich danych (pomieszczenia/zdjęcia/generacje/zapisy). analytics_events bez odczytu klienta (preferowany insert-only lub przez backend).
 12. Indeksy: zgoda na rekomendowane indeksy dla FK i typowych filtrów/listowań (rooms, photos, inspirations, saved, analytics).
@@ -21,7 +20,6 @@
 2. Stosować room_photos.photo_type jako ENUM room|inspiration.
 3. Nie utrwalać wyników generacji w DB w MVP (szybsza implementacja, mniejsza powierzchnia danych).
 5. Limit generacji: egzekwowany na poziomie wejścia do LLM, bez mechanizmu w bazie danych.
-6. Soft delete (deleted_at) + opcjonalne partial indexes dla deleted_at IS NULL.
 7. analytics_events jako tabela uniwersalna (JSONB) + indeksy (event_type, created_at) oraz blokada odczytu przez RLS (opcjonalnie w MVP).
 10. Strategia Storage: storage_path w DB, buckety/prefiksy per użytkownik, polityki dostępu oparte o auth.uid().
 
@@ -49,7 +47,6 @@
 2. Brak trybu anonimowego w MVP: uproszczona autoryzacja (zawsze mamy kontekst user_id).
 3. Storage: prywatne ścieżki per użytkownik; w DB przechowujemy storage_path; polityki Storage powiązane z auth.uid() i rekordami DB.
 4. Indeksy: na FK i typowe listowania (rooms po user_id, photos po room, analytics po czasie/typie).
-5. Soft delete: deleted_at dla zachowania historii i analityki; opcjonalnie partial indexes dla aktywnych rekordów.
 
 ### Rozwiązane kwestie techniczne
 1. Bullet points: zwracane przez API jako tablica stringów (bez zapisu w DB w MVP).

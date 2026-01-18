@@ -65,8 +65,7 @@ List all rooms owned by the authenticated user.
 
 **Authentication:** Required (authenticated user)
 
-**Query Parameters:**
-- `includeDeleted` (optional, boolean) - Include soft-deleted rooms. Default: `false`
+**Query Parameters:** None
 
 **Response Body:**
 ```json
@@ -182,33 +181,6 @@ Get details of a specific room.
 
 **Success Codes:**
 - `200 OK` - Room retrieved
-
-**Error Codes:**
-- `401 Unauthorized` - No valid authentication token
-- `403 Forbidden` - User does not own this room
-- `404 Not Found` - Room not found
-- `500 Internal Server Error` - Server error
-
----
-
-#### DELETE /api/rooms/{roomId}
-
-Soft delete a room.
-
-**Authentication:** Required (authenticated user, must own room)
-
-**Path Parameters:**
-- `roomId` (uuid, required) - Room identifier
-
-**Response Body:**
-```json
-{
-  "message": "Room deleted successfully"
-}
-```
-
-**Success Codes:**
-- `200 OK` - Room soft deleted
 
 **Error Codes:**
 - `401 Unauthorized` - No valid authentication token
@@ -475,7 +447,6 @@ async function validateRoomOwnership(roomId: string, userId: string) {
 #### Rooms
 - `roomTypeId`: required, must exist in `room_types` table
 - Room ownership: room row is linked to the authenticated user (`rooms.user_id`)
-- Soft delete via `deleted_at`
 
 #### Room Photos
 - `photoType`: required, enum `['room', 'inspiration']`
@@ -619,7 +590,7 @@ async function validatePhotoRequirements(roomId: string) {
 - Production: `https://yourdomain.com`
 
 **Allowed Methods:**
-- GET, POST, PATCH, DELETE, OPTIONS
+- GET, POST, PATCH, OPTIONS
 
 **Allowed Headers:**
 - Authorization, Content-Type
@@ -648,7 +619,6 @@ async function validatePhotoRequirements(roomId: string) {
 
 **Indexes:**
 - Already defined in migration (see db-plan.md Section 3)
-- Partial indexes for soft delete performance
 - Composite indexes for common queries
 
 **Query Optimization:**

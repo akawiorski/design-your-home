@@ -32,7 +32,7 @@
 ## 5. Przepływ danych
 1) Autoryzacja: wymagane JWT (Supabase Auth). 401 gdy brak/niepoprawny.
 2) Weryfikacja pokoju + ownership: SELECT room z `rooms` z filtrem po userId; 404/403 gdy brak dostępu.
-3) Zlicz zdjęcia: SELECT z `room_photos` (WHERE deleted_at IS NULL) grupując po photo_type; sprawdź minima (>=1 room, >=2 inspiration). 400 przy naruszeniu.
+3) Zlicz zdjęcia: SELECT z `room_photos` grupując po photo_type; sprawdź minima (>=1 room, >=2 inspiration). 400 przy naruszeniu.
 4) Przygotuj payload do AI: signed URLs lub publiczne ścieżki zdjęć; prompt optional.
 5) Wywołaj OpenRouter: oczekuj 2 obrazy (1080x720) + 4-6 bullet points.
 6) Nie zapisuj wyniku generacji w Postgres.
@@ -70,7 +70,7 @@
 2) Zdefiniuj schemat Zod dla params/query/body (uuid roomId, optional prompt <=200).
 3) Pobierz supabase client z `context.locals.supabase` (service role, odpowiedni typ z `src/db/supabase.client.ts`).
 4) Wymuś auth i sprawdź ownership pokoju.
-5) Zlicz zdjęcia: SELECT photo_type, COUNT(*) FROM room_photos WHERE room_id = roomId AND deleted_at IS NULL GROUP BY photo_type; waliduj minima.
+5) Zlicz zdjęcia: SELECT photo_type, COUNT(*) FROM room_photos WHERE room_id = roomId GROUP BY photo_type; waliduj minima.
 6) Waliduj limity generacji (rate limiter per user) – 429 w razie przekroczenia.
 7) Pobierz potrzebne zdjęcia (URLs) do AI: SELECT storage_path, photo_type LIMIT wymagane; wygeneruj signed URLs do wejścia dla AI.
 8) Zbuduj prompt do OpenRouter (context + opcjonalny user prompt) i wywołaj AI; obsłuż timeout/503.
