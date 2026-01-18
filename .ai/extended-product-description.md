@@ -17,11 +17,11 @@ Użytkownicy chcą szybko zobaczyć, jak mogłoby wyglądać ich mieszkanie w r�
 
 ## Zakres MVP
 
-MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: projekt → pomieszczenia → upload → generacja.
+MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: użytkownik → pomieszczenia → upload → generacja.
 
 ### Kluczowe funkcjonalności
-* Tworzenie projektu mieszkania (jeden użytkownik może mieć listę projektów).
-* Dodawanie pomieszczeń w projekcie z listy predefiniowanych typów (np. kuchnia, łazienka, sypialnia).
+* Zarządzanie listą pomieszczeń przypisaną do użytkownika (bez koncepcji projektu w MVP).
+* Dodawanie pomieszczeń z listy predefiniowanych typów (np. kuchnia, łazienka, sypialnia).
 * Upload plików dla wybranego pomieszczenia:
 	* minimum: 1 zdjęcie danego pomieszczenia (stan niewykończony),
 	* minimum: 2 zdjęcia inspiracji dla tego pomieszczenia,
@@ -47,8 +47,7 @@ MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: p
 
 ### Doświadczenie użytkownika (wysoki poziom)
 1.	Użytkownik loguje się / tworzy konto.
-2.	Użytkownik tworzy projekt mieszkania.
-3.	Dodaje pomieszczenie z listy.
+2.	Dodaje pomieszczenie z listy.
 4.	Uploaduje 1 zdjęcie pomieszczenia + 2 inspiracje (oznaczone jako to pomieszczenie).
 5.	Klika „Generuj” i otrzymuje wariant (karta) z 2 ujęciami + bullet points z sugestiami.
 6.	Może wygenerować kolejny wariant (aż do limitu dziennego).

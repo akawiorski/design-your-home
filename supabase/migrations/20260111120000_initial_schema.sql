@@ -5,9 +5,8 @@
 -- Date: 2026-01-11
 -- 
 -- Tables Created:
---   - projects: User apartment projects (1 default per user in MVP)
 --   - room_types: Dictionary of room types (kitchen, bathroom, etc.)
---   - rooms: Rooms within projects
+--   - rooms: Rooms owned by a user
 --   - room_photos: Input photos for rooms (room photos and inspiration photos)
 --   - generated_inspirations: Generated inspiration variants with suggestions
 --   - inspiration_images: Generated images for each inspiration (2 per variant)
@@ -29,27 +28,6 @@ comment on type photo_type_enum is 'Type of photo: room (actual room photo) or i
 -- ============================================================================
 -- SECTION 2: TABLES
 -- ============================================================================
-
--- ----------------------------------------------------------------------------
--- Table: projects
--- Purpose: Stores user apartment projects. In MVP, each user has one default project.
--- RLS: Users can only access their own projects
--- Soft Delete: Uses deleted_at column
--- ----------------------------------------------------------------------------
-create table projects (
-    id uuid primary key default gen_random_uuid(),
-    user_id uuid not null references auth.users(id) on delete cascade,
-    name text not null default 'My Home',
-    created_at timestamptz not null default now(),
-    updated_at timestamptz not null default now(),
-    deleted_at timestamptz
-);
-
-comment on table projects is 'User apartment projects. Each user has one default project in MVP.';
-comment on column projects.id is 'Unique project identifier';
-comment on column projects.user_id is 'Reference to Supabase Auth user';
-comment on column projects.name is 'Project name, defaults to "My Home"';
-comment on column projects.deleted_at is 'Soft delete timestamp. NULL means active record.';
 
 -- ----------------------------------------------------------------------------
 -- Table: room_types
@@ -76,22 +54,22 @@ insert into room_types (name, display_name) values
 
 -- ----------------------------------------------------------------------------
 -- Table: rooms
--- Purpose: Rooms within a project. Each room is a separate context for generation.
--- RLS: Users can only access rooms from their own projects
+-- Purpose: Rooms owned by a user. Each room is a separate context for generation.
+-- RLS: Users can only access their own rooms
 -- Soft Delete: Uses deleted_at column
 -- ----------------------------------------------------------------------------
 create table rooms (
     id uuid primary key default gen_random_uuid(),
-    project_id uuid not null references projects(id) on delete cascade,
+    user_id uuid not null references auth.users(id) on delete cascade,
     room_type_id integer not null references room_types(id) on delete restrict,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now(),
     deleted_at timestamptz
 );
 
-comment on table rooms is 'Rooms within user projects. Each room is a separate generation context.';
+comment on table rooms is 'Rooms owned by a user. Each room is a separate generation context.';
 comment on column rooms.id is 'Unique room identifier';
-comment on column rooms.project_id is 'Reference to parent project';
+comment on column rooms.user_id is 'Reference to Supabase Auth user';
 comment on column rooms.room_type_id is 'Reference to room type from dictionary';
 comment on column rooms.deleted_at is 'Soft delete timestamp. NULL means active record.';
 
@@ -213,12 +191,8 @@ comment on column analytics_events.user_id is 'Reference to user (nullable for g
 -- ============================================================================
 -- SECTION 3: INDEXES
 -- ============================================================================
-
--- Projects: Index for user lookups on active projects
-create index idx_projects_user_id on projects(user_id) where deleted_at is null;
-
--- Rooms: Indexes for project and room type lookups on active rooms
-create index idx_rooms_project_id on rooms(project_id) where deleted_at is null;
+-- Rooms: Indexes for user and room type lookups on active rooms
+create index idx_rooms_user_id on rooms(user_id) where deleted_at is null;
 create index idx_rooms_room_type_id on rooms(room_type_id);
 
 -- Room Photos: Indexes for room lookups and photo type filtering on active photos
@@ -247,7 +221,6 @@ create index idx_analytics_events_user_id_created_at on analytics_events(user_id
 -- Enable RLS on all tables
 -- Note: RLS is enabled but no policies are defined.
 -- All access must go through service_role key or policies must be added separately.
-alter table projects enable row level security;
 alter table room_types enable row level security;
 alter table rooms enable row level security;
 alter table room_photos enable row level security;

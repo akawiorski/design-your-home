@@ -108,33 +108,6 @@ export interface Database {
           },
         ];
       };
-      projects: {
-        Row: {
-          created_at: string;
-          deleted_at: string | null;
-          id: string;
-          name: string;
-          updated_at: string;
-          user_id: string;
-        };
-        Insert: {
-          created_at?: string;
-          deleted_at?: string | null;
-          id?: string;
-          name?: string;
-          updated_at?: string;
-          user_id: string;
-        };
-        Update: {
-          created_at?: string;
-          deleted_at?: string | null;
-          id?: string;
-          name?: string;
-          updated_at?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
       room_photos: {
         Row: {
           created_at: string;
@@ -199,34 +172,27 @@ export interface Database {
           created_at: string;
           deleted_at: string | null;
           id: string;
-          project_id: string;
           room_type_id: number;
           updated_at: string;
+          user_id: string;
         };
         Insert: {
           created_at?: string;
           deleted_at?: string | null;
           id?: string;
-          project_id: string;
           room_type_id: number;
           updated_at?: string;
+          user_id: string;
         };
         Update: {
           created_at?: string;
           deleted_at?: string | null;
           id?: string;
-          project_id?: string;
           room_type_id?: number;
           updated_at?: string;
+          user_id?: string;
         };
         Relationships: [
-          {
-            foreignKeyName: "rooms_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "projects";
-            referencedColumns: ["id"];
-          },
           {
             foreignKeyName: "rooms_room_type_id_fkey";
             columns: ["room_type_id"];

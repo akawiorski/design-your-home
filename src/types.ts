@@ -12,7 +12,6 @@ import type { Tables, Enums } from "./db/database.types";
 // Database Entity Types (Re-exported for convenience)
 // =============================================================================
 
-export type ProjectEntity = Tables<"projects">;
 export type RoomTypeEntity = Tables<"room_types">;
 export type RoomEntity = Tables<"rooms">;
 export type RoomPhotoEntity = Tables<"room_photos">;
@@ -55,21 +54,6 @@ export interface PaginationResponse {
 }
 
 // =============================================================================
-// Projects - GET /api/projects
-// =============================================================================
-
-/**
- * Project DTO - represents user's project (apartment)
- * Derived from: ProjectEntity
- */
-export interface ProjectDTO {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// =============================================================================
 // Room Types - GET /api/room-types
 // =============================================================================
 
@@ -103,12 +87,11 @@ export interface PhotoCount {
 }
 
 /**
- * Room DTO - represents a room in user's project
+ * Room DTO - represents a room owned by the user
  * Derived from: RoomEntity with joined RoomTypeEntity and photo counts
  */
 export interface RoomDTO {
   id: string;
-  projectId: string;
   roomType: RoomTypeDTO;
   photoCount: PhotoCount;
   createdAt: string;
@@ -490,7 +473,6 @@ export function isValidSortBy(value: unknown): value is SavedInspirationsSortBy 
  * Validation rules constants
  */
 export const ValidationRules = {
-  PROJECT_NAME_MAX_LENGTH: 100,
   PHOTO_DESCRIPTION_MAX_LENGTH: 500,
   INSPIRATION_PROMPT_MAX_LENGTH: 200,
   SAVED_INSPIRATION_NAME_MAX_LENGTH: 100,

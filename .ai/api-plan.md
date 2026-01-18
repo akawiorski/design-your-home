@@ -4,44 +4,14 @@
 
 | Resource | Database Table | Description |
 |----------|---------------|-------------|
-| Projects | `projects` | User apartment projects (1 default per user in MVP) |
 | Room Types | `room_types` | Dictionary of available room types (kitchen, bathroom, etc.) |
-| Rooms | `rooms` | Rooms within the user's project |
+| Rooms | `rooms` | Rooms owned by the user |
 | Room Photos | `room_photos` | Input photos for rooms (room photos and inspiration photos) |
 | Analytics Events | `analytics_events` | Analytics tracking events |
 
 ## 2. Endpoints
 
-### 2.2 Projects
-
-#### GET /api/projects
-
-Get user's default project. Auto-creates if doesn't exist (MVP behavior).
-
-**Authentication:** Required (authenticated user)
-
-**Query Parameters:** None
-
-**Response Body:**
-```json
-{
-  "id": "uuid",
-  "name": "My Home",
-  "createdAt": "2026-01-11T10:00:00Z",
-  "updatedAt": "2026-01-11T10:00:00Z"
-}
-```
-
-**Success Codes:**
-- `200 OK` - Project found or created
-
-**Error Codes:**
-- `401 Unauthorized` - No valid authentication token
-- `500 Internal Server Error` - Server error
-
----
-
-### 2.3 Room Types
+### 2.2 Room Types
 
 #### GET /api/room-types
 
@@ -87,11 +57,11 @@ List all available room types (dictionary).
 
 ---
 
-### 2.4 Rooms
+### 2.3 Rooms
 
 #### GET /api/rooms
 
-List all rooms in user's default project.
+List all rooms owned by the authenticated user.
 
 **Authentication:** Required (authenticated user)
 
@@ -104,7 +74,6 @@ List all rooms in user's default project.
   "rooms": [
     {
       "id": "uuid",
-      "projectId": "uuid",
       "roomType": {
         "id": 1,
         "name": "kitchen",
@@ -132,7 +101,7 @@ List all rooms in user's default project.
 
 #### POST /api/rooms
 
-Create a new room in user's default project.
+Create a new room for the authenticated user.
 
 **Authentication:** Required (authenticated user)
 
@@ -147,7 +116,6 @@ Create a new room in user's default project.
 ```json
 {
   "id": "uuid",
-  "projectId": "uuid",
   "roomType": {
     "id": 1,
     "name": "kitchen",
@@ -189,7 +157,6 @@ Get details of a specific room.
 ```json
 {
   "id": "uuid",
-  "projectId": "uuid",
   "roomType": {
     "id": 1,
     "name": "kitchen",
@@ -471,7 +438,7 @@ Track an analytics event.
 
 **Access Control:**
 - **Authenticated (required for all endpoints in this MVP):**
-  - Room types, projects, rooms, photos, generation, analytics
+  - Room types, rooms, photos, generation, analytics
   - User can only access their own resources
 
 ### 3.3 Service Role Key Usage
@@ -489,11 +456,11 @@ Track an analytics event.
 async function validateRoomOwnership(roomId: string, userId: string) {
   const room = await supabase
     .from('rooms')
-    .select('project_id, projects!inner(user_id)')
+    .select('user_id')
     .eq('id', roomId)
     .single();
   
-  if (room.data?.projects.user_id !== userId) {
+  if (room.data?.user_id !== userId) {
     throw new ForbiddenError('Access denied');
   }
 }
@@ -505,13 +472,9 @@ async function validateRoomOwnership(roomId: string, userId: string) {
 
 ### 4.1 Validation Rules
 
-#### Projects
-- `name`: string, max 100 characters, default "My Home"
-- Auto-create default project on first access
-
 #### Rooms
 - `roomTypeId`: required, must exist in `room_types` table
-- One default project per user (MVP)
+- Room ownership: room row is linked to the authenticated user (`rooms.user_id`)
 - Soft delete via `deleted_at`
 
 #### Room Photos
@@ -534,29 +497,7 @@ async function validateRoomOwnership(roomId: string, userId: string) {
 
 ### 4.2 Business Logic Implementation
 
-#### BL-1: Default Project Management
-**PRD Reference:** Section 3.2 - "Application has one default project"
-
-**Logic:**
-- On first GET /api/projects, auto-create project if doesn't exist
-- Project named "My Home" by default
-- All rooms created in this default project
-- No multi-project support in MVP
-
-**Implementation:**
-```typescript
-async function getOrCreateDefaultProject(userId: string) {
-  let project = await getProject(userId);
-  if (!project) {
-    project = await createProject(userId, { name: "My Home" });
-  }
-  return project;
-}
-```
-
----
-
-#### BL-2: Photo Upload Validation
+#### BL-1: Photo Upload Validation
 **PRD Reference:** Section 3.4 - "Minimum 1 room photo, 2 inspiration photos"
 
 **Logic:**
@@ -582,7 +523,7 @@ async function validatePhotoRequirements(roomId: string) {
 
 ---
 
-#### BL-3: Inspiration Generation
+#### BL-2: Inspiration Generation
 **PRD Reference:** Section 3.5 - "2 images per variant, bullet points"
 
 **Logic:**
@@ -799,6 +740,7 @@ API_BASE_URL=https://api.yourdomain.com
 **Planned Features (Post-MVP):**
 1. Async generation with webhooks
 2. Multi-project support
+  - (not in MVP; rooms are directly owned by the user in current scope)
 3. Room photo editing/cropping
 4. Inspiration sharing (public links)
 5. Advanced filtering and search
@@ -813,13 +755,12 @@ API_BASE_URL=https://api.yourdomain.com
 ### Workflow 1: New User Generates First Inspiration
 
 1. **User signs up/logs in** via Supabase Auth
-2. **Get default project:** `GET /api/projects` → Auto-created
-5. **Create room:** `POST /api/rooms` with `roomTypeId: 1`
-6. **Get upload URLs:** `POST /api/rooms/{roomId}/photos/upload-url` × 3 times
-7. **Upload photos** directly to Supabase Storage
-8. **Create photo records:** `POST /api/rooms/{roomId}/photos` × 3 times
-9. **Generate inspiration:** `POST /api/rooms/{roomId}/generate`
-10. **View result:** Inspiration with 2 images + bullet points
+2. **Create room:** `POST /api/rooms` with `roomTypeId: 1`
+3. **Get upload URLs:** `POST /api/rooms/{roomId}/photos/upload-url` × 3 times
+4. **Upload photos** directly to Supabase Storage
+5. **Create photo records:** `POST /api/rooms/{roomId}/photos` × 3 times
+6. **Generate inspiration:** `POST /api/rooms/{roomId}/generate`
+7. **View result:** Inspiration with 2 images + bullet points
 
 ---
 

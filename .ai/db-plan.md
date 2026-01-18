@@ -2,24 +2,7 @@
 
 ## 1. Tabele z kolumnami, typami danych i ograniczeniami
 
-### 1.1 projects
-Przechowuje projekty mieszkań użytkowników. W MVP każdy użytkownik ma jeden domyślny projekt.
-
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator projektu |
-| user_id | UUID | NOT NULL | Odniesienie do auth.users (Supabase Auth) |
-| name | TEXT | NOT NULL, DEFAULT 'My Home' | Nazwa projektu |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
-| updated_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data ostatniej modyfikacji |
-| deleted_at | TIMESTAMP WITH TIME ZONE | NULL | Data soft delete |
-
-**Ograniczenia:**
-- `user_id` odnosi się do `auth.users(id)` (Supabase)
-
----
-
-### 1.2 room_types
+### 1.1 room_types
 Słownik typów pomieszczeń (kitchen, bathroom, bedroom, living_room itp.).
 
 | Kolumna | Typ | Ograniczenia | Opis |
@@ -35,27 +18,28 @@ Słownik typów pomieszczeń (kitchen, bathroom, bedroom, living_room itp.).
 - (3, 'bedroom', 'Sypialnia')
 - (4, 'living_room', 'Salon')
 
+
 ---
 
-### 1.3 rooms
-Pomieszczenia w projekcie mieszkania użytkownika.
+### 1.2 rooms
+Pomieszczenia przypisane bezpośrednio do użytkownika (bez koncepcji projektu w MVP).
 
 | Kolumna | Typ | Ograniczenia | Opis |
 |---------|-----|--------------|------|
 | id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator pomieszczenia |
-| project_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do projects.id |
+| user_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do auth.users(id) |
 | room_type_id | INTEGER | NOT NULL, FOREIGN KEY | Odniesienie do room_types.id |
 | created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
 | updated_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data ostatniej modyfikacji |
 | deleted_at | TIMESTAMP WITH TIME ZONE | NULL | Data soft delete |
 
 **Ograniczenia:**
-- `FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE`
+- `FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE`
 - `FOREIGN KEY (room_type_id) REFERENCES room_types(id) ON DELETE RESTRICT`
 
 ---
 
-### 1.4 room_photos
+### 1.3 room_photos
 Zdjęcia wejściowe przypisane do pomieszczenia: zdjęcia "pomieszczenia" oraz "inspiracji".
 
 | Kolumna | Typ | Ograniczenia | Opis |
@@ -78,7 +62,7 @@ CREATE TYPE photo_type_enum AS ENUM ('room', 'inspiration');
 
 ---
 
-### 1.5 analytics_events
+### 1.4 analytics_events
 Zdarzenia analityczne w formacie uniwersalnym (opcjonalne w MVP).
 
 | Kolumna | Typ | Ograniczenia | Opis |
@@ -110,8 +94,6 @@ Zdarzenia analityczne w formacie uniwersalnym (opcjonalne w MVP).
 ```
 auth.users (Supabase)
     ↓ 1:N
-projects
-    ↓ 1:N
 rooms ← 1:N → room_types
     ↓ 1:N
 room_photos
@@ -125,8 +107,7 @@ analytics_events
 
 | Tabela źródłowa | Tabela docelowa | Relacja | Opis |
 |----------------|-----------------|---------|------|
-| auth.users | projects | 1:N | Jeden użytkownik ma wiele projektów (w MVP: 1 domyślny) |
-| projects | rooms | 1:N | Jeden projekt ma wiele pomieszczeń |
+| auth.users | rooms | 1:N | Jeden użytkownik ma wiele pomieszczeń |
 | room_types | rooms | 1:N | Jeden typ pomieszczenia może być użyty w wielu pomieszczeniach |
 | rooms | room_photos | 1:N | Jedno pomieszczenie ma wiele zdjęć |
 | auth.users | analytics_events | 1:N | Jeden użytkownik generuje wiele zdarzeń analitycznych |
@@ -138,11 +119,8 @@ analytics_events
 ### 3.1 Indeksy dla kluczy obcych i często używanych filtrów
 
 ```sql
--- projects
-CREATE INDEX idx_projects_user_id ON projects(user_id) WHERE deleted_at IS NULL;
-
 -- rooms
-CREATE INDEX idx_rooms_project_id ON rooms(project_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_rooms_user_id ON rooms(user_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_rooms_room_type_id ON rooms(room_type_id);
 
 -- room_photos
@@ -156,7 +134,7 @@ CREATE INDEX idx_analytics_events_user_id_created_at ON analytics_events(user_id
 
 ### 3.2 Uzasadnienie indeksów
 
-- **projects, rooms, room_photos:** Partial indexes z `WHERE deleted_at IS NULL` dla wydajności listowania aktywnych rekordów (soft delete).
+- **rooms, room_photos:** Partial indexes z `WHERE deleted_at IS NULL` dla wydajności listowania aktywnych rekordów (soft delete).
 - **analytics_events:** Composite indexes dla typowych zapytań analitycznych (po typie zdarzenia i czasie, po użytkowniku i czasie).
 
 ---
@@ -166,85 +144,36 @@ CREATE INDEX idx_analytics_events_user_id_created_at ON analytics_events(user_id
 ### 4.1 Włączenie RLS na wszystkich tabelach
 
 ```sql
-ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
 ```
 
-### 4.2 Polityki RLS dla projects
+### 4.2 Polityki RLS dla rooms
 
 ```sql
--- SELECT: Użytkownik widzi tylko swoje projekty
-CREATE POLICY select_own_projects ON projects
+-- SELECT: Użytkownik widzi tylko swoje pomieszczenia
+CREATE POLICY select_own_rooms ON rooms
     FOR SELECT
     USING (auth.uid() = user_id);
 
--- INSERT: Użytkownik może tworzyć projekty tylko dla siebie
-CREATE POLICY insert_own_projects ON projects
+-- INSERT: Użytkownik może tworzyć pomieszczenia tylko dla siebie
+CREATE POLICY insert_own_rooms ON rooms
     FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
--- UPDATE: Użytkownik może aktualizować tylko swoje projekty
-CREATE POLICY update_own_projects ON projects
-    FOR UPDATE
-    USING (auth.uid() = user_id);
-
--- DELETE: Użytkownik może usuwać tylko swoje projekty
-CREATE POLICY delete_own_projects ON projects
-    FOR DELETE
-    USING (auth.uid() = user_id);
-```
-
-### 4.3 Polityki RLS dla rooms
-
-```sql
--- SELECT: Użytkownik widzi pomieszczenia ze swoich projektów
-CREATE POLICY select_own_rooms ON rooms
-    FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM projects
-            WHERE projects.id = rooms.project_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- INSERT: Użytkownik może tworzyć pomieszczenia tylko w swoich projektach
-CREATE POLICY insert_own_rooms ON rooms
-    FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM projects
-            WHERE projects.id = rooms.project_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- UPDATE: Użytkownik może aktualizować tylko pomieszczenia ze swoich projektów
+-- UPDATE: Użytkownik może aktualizować tylko swoje pomieszczenia
 CREATE POLICY update_own_rooms ON rooms
     FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM projects
-            WHERE projects.id = rooms.project_id
-            AND projects.user_id = auth.uid()
-        )
-    );
+    USING (auth.uid() = user_id);
 
--- DELETE: Użytkownik może usuwać tylko pomieszczenia ze swoich projektów
+-- DELETE: Użytkownik może usuwać tylko swoje pomieszczenia
 CREATE POLICY delete_own_rooms ON rooms
     FOR DELETE
-    USING (
-        EXISTS (
-            SELECT 1 FROM projects
-            WHERE projects.id = rooms.project_id
-            AND projects.user_id = auth.uid()
-        )
-    );
+    USING (auth.uid() = user_id);
 ```
 
-### 4.4 Polityki RLS dla room_photos
+### 4.3 Polityki RLS dla room_photos
 
 ```sql
 -- SELECT: Użytkownik widzi zdjęcia ze swoich pomieszczeń
@@ -253,9 +182,8 @@ CREATE POLICY select_own_room_photos ON room_photos
     USING (
         EXISTS (
             SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
             WHERE rooms.id = room_photos.room_id
-            AND projects.user_id = auth.uid()
+            AND rooms.user_id = auth.uid()
         )
     );
 
@@ -265,9 +193,8 @@ CREATE POLICY insert_own_room_photos ON room_photos
     WITH CHECK (
         EXISTS (
             SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
             WHERE rooms.id = room_photos.room_id
-            AND projects.user_id = auth.uid()
+            AND rooms.user_id = auth.uid()
         )
     );
 
@@ -277,9 +204,8 @@ CREATE POLICY update_own_room_photos ON room_photos
     USING (
         EXISTS (
             SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
             WHERE rooms.id = room_photos.room_id
-            AND projects.user_id = auth.uid()
+            AND rooms.user_id = auth.uid()
         )
     );
 
@@ -289,14 +215,13 @@ CREATE POLICY delete_own_room_photos ON room_photos
     USING (
         EXISTS (
             SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
             WHERE rooms.id = room_photos.room_id
-            AND projects.user_id = auth.uid()
+            AND rooms.user_id = auth.uid()
         )
     );
 ```
 
-### 4.5 Polityki RLS dla analytics_events
+### 4.4 Polityki RLS dla analytics_events
 
 ```sql
 -- SELECT: Brak polityki SELECT – klient nie może odczytywać zdarzeń analitycznych
@@ -329,7 +254,7 @@ CREATE POLICY select_room_types ON room_types
 ## 5. Dodatkowe uwagi i wyjaśnienia
 
 ### 5.1 Soft Delete
-- Tabele `projects`, `rooms`, `room_photos` używają `deleted_at` do soft delete.
+- Tabele `rooms`, `room_photos` używają `deleted_at` do soft delete.
 - Partial indexes z `WHERE deleted_at IS NULL` zapewniają wydajność dla zapytań dotyczących aktywnych rekordów.
 - Filtrowanie rekordów usuniętych odbywa się po stronie aplikacji.
 
@@ -342,10 +267,6 @@ CREATE POLICY select_room_types ON room_types
 - `event_data` jako JSONB pozwala na elastyczne rozszerzanie struktury zdarzeń bez zmian w schemacie.
 - RLS blokuje odczyt dla klientów – tylko INSERT jest dozwolony.
 - Backend może czytać zdarzenia przez `service_role` key.
-
-### 5.6 Domyślny Projekt
-- Tworzenie domyślnego projektu dla użytkownika odbywa się po stronie aplikacji (nie przez trigger w DB).
-- Każdy użytkownik ma jeden domyślny projekt w MVP.
 
 ### 5.7 Formatowanie i Typy
 - UUID dla wszystkich ID (wyjątek: room_types używa SERIAL).
@@ -362,7 +283,7 @@ CREATE POLICY select_room_types ON room_types
 - Indeksy na FK i typowe filtry zapewniają wydajność.
 - Soft delete umożliwia zachowanie historii bez usuwania danych.
 - JSONB dla event_data umożliwia elastyczne rozszerzanie analityki.
-- Struktura DB pozwala na przyszłą rozbudowę (np. multi-project, współdzielenie inspiracji).
+- Struktura DB pozwala na przyszłą rozbudowę (np. współdzielenie inspiracji lub grupowanie pokoi w przyszłości).
 
 ---
 
@@ -370,11 +291,10 @@ CREATE POLICY select_room_types ON room_types
 
 ### 6.1 Pobranie pomieszczeń użytkownika
 ```sql
-SELECT r.id, r.project_id, rt.display_name AS room_type, r.created_at
+SELECT r.id, r.user_id, rt.display_name AS room_type, r.created_at
 FROM rooms r
 JOIN room_types rt ON rt.id = r.room_type_id
-JOIN projects p ON p.id = r.project_id
-WHERE p.user_id = auth.uid()
+WHERE r.user_id = auth.uid()
 AND r.deleted_at IS NULL
 ORDER BY r.created_at DESC;
 ```
@@ -394,7 +314,6 @@ VALUES (
 ## 7. Podsumowanie
 
 Schemat bazy danych spełnia wszystkie wymagania PRD i decyzje z sesji planowania:
-- ✅ Jeden domyślny projekt na użytkownika (bez triggerów)
 - ✅ Pomieszczenia z typami (room_types)
 - ✅ Upload zdjęć (room_photos) z rozróżnieniem photo_type (ENUM)
 - ✅ Generowanie inspiracji bez persystencji wyników w Postgres (w MVP)

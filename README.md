@@ -112,7 +112,7 @@ npm run preview
 
 In scope (MVP):
 
-- Single default apartment project with a room list
+- Room list owned by the authenticated user (no projects concept)
 - Add/select rooms (predefined room types)
 - Per-room image upload with validation (min 1 room photo + min 2 inspiration photos, max 10 files)
 - Generate inspiration variants per room (2 images + bullet-point suggestions)
@@ -128,7 +128,7 @@ Out of scope (MVP):
 - Data deletion flows and defined retention policy
 - Detailed technical plans, furniture layouts, and dimensioning
 - Sharing inspirations with other users
-- Multiple apartment projects (create/delete/switch projects)
+- Projects concept / multiple apartment projects (create/delete/switch)
 
 ## Project status
 

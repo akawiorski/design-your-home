@@ -12,12 +12,7 @@ const jsonResponse = (data: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
-const errorResponse = (
-  status: number,
-  code: string,
-  message: string,
-  details?: Record<string, unknown>,
-) => {
+const errorResponse = (status: number, code: string, message: string, details?: Record<string, unknown>) => {
   const body: ErrorResponse = {
     error: {
       code,
@@ -35,14 +30,11 @@ const paramsSchema = z.object({
 });
 
 const bodySchema = z.object({
-  prompt: z
-    .string()
-    .max(ValidationRules.INSPIRATION_PROMPT_MAX_LENGTH)
-    .optional(),
+  prompt: z.string().max(ValidationRules.INSPIRATION_PROMPT_MAX_LENGTH).optional(),
 });
 
 export async function POST(context: APIContext) {
-  const { params, request, locals } = context;
+  const { params, request } = context;
 
   const parsedParams = paramsSchema.safeParse(params);
   if (!parsedParams.success) {
@@ -67,11 +59,6 @@ export async function POST(context: APIContext) {
     });
   }
 
-  const supabase = locals.supabase;
-
   // TODO: implement remaining steps (room check, counts, rate limit, AI call, storage, inserts).
-  return jsonResponse(
-    { message: "Generation endpoint scaffolding created; implementation pending." },
-    501,
-  );
+  return jsonResponse({ message: "Generation endpoint scaffolding created; implementation pending." }, 501);
 }

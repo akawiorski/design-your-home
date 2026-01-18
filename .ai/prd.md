@@ -3,7 +3,7 @@
 ## 1. Przegląd produktu
 Home Inspiration Generator to webowa aplikacja umożliwiająca użytkownikom generowanie wizualnych inspiracji aranżacji wnętrz na podstawie zdjęć własnego mieszkania w stanie niewykończonym oraz zdjęć inspiracyjnych. Produkt pomaga szybko zobaczyć możliwe warianty wykończenia poszczególnych pomieszczeń oraz uzyskać proste sugestie funkcjonalne, bez konieczności posiadania wiedzy architektonicznej.
 
-Na etapie MVP użytkownik pracuje zawsze w obrębie jednego, domyślnego projektu mieszkania, który zawiera listę pomieszczeń. Nie ma funkcji tworzenia wielu projektów ani przełączania się między nimi.
+Na etapie MVP użytkownik pracuje bezpośrednio na liście pomieszczeń przypisanych do konta. Nie ma koncepcji projektów ani przełączania się między nimi.
 
 W tej iteracji MVP nie zapisujemy wygenerowanych inspiracji w bazie danych ani nie budujemy galerii zapisów — zostaje wyłącznie generowanie.
 
@@ -26,9 +26,8 @@ Aplikacja rozwiązuje te problemy, generując realistyczne wizualizacje dopasowa
 - Dane użytkownika są niedostępne dla innych użytkowników.
 
 ### 3.2 Struktura mieszkania
-- Aplikacja posiada jeden domyślny projekt mieszkania.
-- Projekt zawiera listę pomieszczeń.
-- Brak możliwości tworzenia, usuwania lub przełączania projektów w MVP.
+- Aplikacja przechowuje listę pomieszczeń powiązaną bezpośrednio z użytkownikiem.
+- Brak koncepcji projektu/multi-project w MVP.
 
 ### 3.3 Pomieszczenia
 - Dodawanie pomieszczeń do mieszkania z listy predefiniowanych typów (np. kuchnia, łazienka, sypialnia, salon).
@@ -64,6 +63,7 @@ Aplikacja rozwiązuje te problemy, generując realistyczne wizualizacje dopasowa
 - Brak precyzyjnych planów technicznych, rzutów mebli i wymiarowania.
 - Brak współdzielenia inspiracji z innymi użytkownikami.
 - Brak obsługi wielu projektów mieszkań.
+
 
 ## 5. Historyjki użytkowników
 
