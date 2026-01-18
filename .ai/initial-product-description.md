@@ -7,7 +7,7 @@ Chcę pomocy w projektowaniu wnętrza mojego mieszkania. Mam rzut techniczny mie
 - upload plików z krótkim opisem co dane zdjęcie przedstawia
 - plików moze być wiele, mozemy ograniczyć ich ilość do 10
 - gdy uzytkownik naciśnie "generuj" zostaną wygenerowane zdjęcia na podstawie inspiracji, jak moze wyglądać twoje mieszania
-- uzytkownik decyudje czy zachować wygenerowane inspiracje w postaci zdjęć, nadając im nazwę
+- uzytkownik otrzymuje wygenerowane inspiracje (bez zapisywania ich w aplikacji na tym etapie)
 
 ### Co NIE wchodzi w zakres MVP
 - wystarczy ze będa obsługiwane podstawowe formaty zdjęć: jpg, heic, png
@@ -15,5 +15,4 @@ Chcę pomocy w projektowaniu wnętrza mojego mieszkania. Mam rzut techniczny mie
 - aplikacja mobilna (wystarczy tylko web)
 
 ### Kryteria sukcesu
-- 30% inspiracji zostanie zapisane
 - 50% użytkowników wygeneruje dwie inspiracje

@@ -5,7 +5,7 @@ Home Inspiration Generator to webowa aplikacja umożliwiająca użytkownikom gen
 
 Na etapie MVP użytkownik pracuje zawsze w obrębie jednego, domyślnego projektu mieszkania, który zawiera listę pomieszczeń. Nie ma funkcji tworzenia wielu projektów ani przełączania się między nimi.
 
-Produkt działa w modelu soft-gate: użytkownik może generować inspiracje bez konta, natomiast zapis wyników wymaga rejestracji lub logowania.
+W tej iteracji MVP nie zapisujemy wygenerowanych inspiracji w bazie danych ani nie budujemy galerii zapisów — zostaje wyłącznie generowanie.
 
 ## 2. Problem użytkownika
 Użytkownicy planujący wykończenie lub remont mieszkania:
@@ -19,9 +19,7 @@ Aplikacja rozwiązuje te problemy, generując realistyczne wizualizacje dopasowa
 ## 3. Wymagania funkcjonalne
 
 ### 3.1 Zarządzanie użytkownikiem
-- Możliwość korzystania z aplikacji bez zakładania konta do momentu zapisu inspiracji.
 - Rejestracja i logowanie użytkownika (np. email + hasło).
-- Każdy użytkownik ma prywatny dostęp do swoich zapisanych inspiracji.
 - Dane użytkownika są niedostępne dla innych użytkowników.
 
 ### 3.2 Struktura mieszkania
@@ -53,19 +51,8 @@ Aplikacja rozwiązuje te problemy, generując realistyczne wizualizacje dopasowa
 - Możliwość wygenerowania kolejnego wariantu dla tego samego pomieszczenia.
 - Limit generacji: kontrolowany przez dostępne kredyty w LLM, bez twardego limitu dziennego w aplikacji.
 
-### 3.6 Zapis inspiracji
-- Możliwość zapisania pojedynczego wariantu jako karty inspiracji.
-- Zapis wymaga posiadania konta (soft-gate).
-- Podczas zapisu użytkownik:
-  - nadaje nazwę karcie inspiracji,
-  - karta jest przypisana do konkretnego pomieszczenia,
-  - styl jest polem opcjonalnym.
-- Galeria zapisanych inspiracji z możliwością filtrowania po pomieszczeniu.
-
-### 3.7 Analityka
-- Rejestrowane zdarzenia:
-  - InspirationSaved.
-- Dane wykorzystywane do oceny metryk sukcesu w horyzoncie 30 dni.
+### 3.6 Analityka
+- (Opcjonalnie) rejestrowanie zdarzeń typu `InspirationGenerated` w celu pomiaru użycia i stabilności generacji.
 
 ## 4. Granice produktu
 - Brak aplikacji mobilnej (tylko web).
@@ -127,40 +114,6 @@ Kryteria akceptacji:
 - Każda generacja tworzy nową kartę.
 - System działa w ramach dostępnych kredytów LLM.
 
-### US-007
-ID: US-007  
-Tytuł: Zapis inspiracji przez zalogowanego użytkownika  
-Opis: Jako zalogowany użytkownik chcę zapisać wybrany wariant, aby wrócić do niego później.  
-Kryteria akceptacji:
-- Użytkownik nadaje nazwę inspiracji.
-- Inspiracja pojawia się w galerii.
-- Rejestrowane jest zdarzenie InspirationSaved.
-
-### US-008
-ID: US-008  
-Tytuł: Soft-gate przy zapisie inspiracji  
-Opis: Jako niezalogowany użytkownik chcę zostać poproszony o założenie konta przy zapisie inspiracji.  
-Kryteria akceptacji:
-- Próba zapisu uruchamia rejestrację lub logowanie.
-- Po zalogowaniu zapis jest kontynuowany.
-
-### US-009
-ID: US-009  
-Tytuł: Uwierzytelnianie i bezpieczny dostęp  
-Opis: Jako użytkownik chcę mieć pewność, że tylko ja mam dostęp do moich zapisanych inspiracji.  
-Kryteria akceptacji:
-- Dostęp do zapisanych inspiracji wymaga zalogowania.
-- Użytkownik widzi wyłącznie swoje dane.
-- Sesja użytkownika działa poprawnie po zalogowaniu i wylogowaniu.
-
-### US-010
-ID: US-010  
-Tytuł: Przeglądanie galerii zapisanych inspiracji  
-Opis: Jako użytkownik chcę przeglądać zapisane inspiracje i filtrować je po pomieszczeniu.  
-Kryteria akceptacji:
-- Galeria wyświetla wszystkie zapisane karty.
-- Dostępny jest filtr po pomieszczeniu.
-
 ### US-011
 ID: US-011  
 Tytuł: Obsługa błędów generacji  
@@ -170,6 +123,4 @@ Kryteria akceptacji:
 - Użytkownik może ponowić próbę bez utraty danych.
 
 ## 6. Metryki sukcesu
-- 30% wygenerowanych wariantów zostanie zapisanych jako karty inspiracji w okresie 30 dni.
 - 50% użytkowników wygeneruje co najmniej 2 warianty w okresie 30 dni.
-- Liczba zapisanych inspiracji jako główny wskaźnik wartości produktu.

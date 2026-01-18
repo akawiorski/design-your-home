@@ -17,7 +17,7 @@ Użytkownicy chcą szybko zobaczyć, jak mogłoby wyglądać ich mieszkanie w r�
 
 ## Zakres MVP
 
-MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: projekt → pomieszczenia → upload → generacja → zapis inspiracji.
+MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: projekt → pomieszczenia → upload → generacja.
 
 ### Kluczowe funkcjonalności
 * Tworzenie projektu mieszkania (jeden użytkownik może mieć listę projektów).
@@ -34,10 +34,6 @@ MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: p
 	* możliwość kliknięcia przycisku „Wygeneruj kolejny wariant”.
 * Sugestie tekstowe układu:
 	* do każdego wariantu generowane są proste bullet points, które wspierają decyzje dot. ogólnego rozplanowania (na MVP bez precyzyjnych planów czy rzutów mebli).
-* Zapis inspiracji (soft-gate):
-	* użytkownik może korzystać bez konta do momentu, gdy chce zapisać wynik,
-	* zapis działa jako „karta inspiracji” (wariant) z możliwością nadania nazwy; pomieszczenie przypisane, styl opcjonalny,
-	* domyślnie zapis dotyczy pojedynczej karty (2 ujęcia).
 
 ### Ograniczenia MVP
 * Brak aplikacji mobilnej (tylko web).
@@ -55,24 +51,20 @@ MVP obejmuje wyłącznie aplikację webową, skupioną na prostym przepływie: p
 3.	Uploaduje 1 zdjęcie pomieszczenia + 2 inspiracje (oznaczone jako to pomieszczenie).
 4.	Klika „Generuj” i otrzymuje wariant (karta) z 2 ujęciami + bullet points z sugestiami.
 5.	Może wygenerować kolejny wariant (aż do limitu dziennego).
-6.	Jeśli chce zachować wynik, klika „Zapisz” → wtedy przechodzi przez soft-gate do utworzenia konta/logowania.
-7.	Przegląda zapisane inspiracje w galerii z filtrem po pomieszczeniu.
 
 ## Analityka i kryteria sukcesu
 
 ### W MVP wdrażane są zdarzenia:
 * ProjectCreated
-* InspirationSaved
+* (Opcjonalnie) InspirationGenerated
 
 Horyzont pomiaru: 30 dni.
 
 ### Kryteria sukcesu:
-	•	30% wygenerowanych inspiracji (wariantów) zostanie zapisane jako karty inspiracji.
 	•	50% użytkowników wygeneruje co najmniej 2 warianty w okresie 30 dni.
 
 ### Docelowy efekt
-
-Po zakończeniu korzystania z MVP użytkownik ma mieć zestaw zapisanych, nazwanych kart inspiracji dla konkretnych pomieszczeń, które pomagają mu:
+Po zakończeniu korzystania z MVP użytkownik ma mieć możliwość wygenerowania kilku wariantów inspiracji dla konkretnych pomieszczeń, które pomagają mu:
 
 * podjąć decyzje o stylu i kierunku wykończenia,
 * lepiej zrozumieć możliwe układy i funkcje pomieszczeń (na poziomie ogólnych wskazówek),

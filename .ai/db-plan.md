@@ -78,73 +78,13 @@ CREATE TYPE photo_type_enum AS ENUM ('room', 'inspiration');
 
 ---
 
-### 1.5 generated_inspirations
-Wygenerowane warianty inspiracji dla pomieszczenia. Każdy wariant zawiera bullet points z sugestiami.
-
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator generacji |
-| room_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do rooms.id |
-| bullet_points | JSONB | NOT NULL | Tablica stringów z sugestiami funkcjonalnymi |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
-| deleted_at | TIMESTAMP WITH TIME ZONE | NULL | Data soft delete |
-
-**Format bullet_points:**
-```json
-["Strefowanie kuchni: gotowanie, przygotowanie, zmywanie", "Oświetlenie LED pod szafkami", "Wyspa jako dodatkowa powierzchnia robocza"]
-```
-
-**Ograniczenia:**
-- `FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE`
-
----
-
-### 1.6 inspiration_images
-Obrazy wygenerowane dla wariantu inspiracji. Każdy wariant ma 2 obrazy (position: 1 i 2).
-
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator obrazu |
-| generated_inspiration_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do generated_inspirations.id |
-| storage_path | TEXT | NOT NULL | Ścieżka do pliku w Supabase Storage |
-| position | SMALLINT | NOT NULL, CHECK (position IN (1, 2)) | Pozycja obrazu w wariancie (1 lub 2) |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
-
-**Ograniczenia:**
-- `FOREIGN KEY (generated_inspiration_id) REFERENCES generated_inspirations(id) ON DELETE CASCADE`
-- `UNIQUE (generated_inspiration_id, position)` – każdy wariant ma dokładnie 2 obrazy
-- `CHECK (position IN (1, 2))`
-
----
-
-### 1.7 saved_inspirations
-Zapisane karty inspiracji. Wymaga konta użytkownika (soft-gate).
-
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator zapisanej inspiracji |
-| user_id | UUID | NOT NULL | Odniesienie do auth.users (Supabase Auth) |
-| room_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do rooms.id |
-| generated_inspiration_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do generated_inspirations.id |
-| name | TEXT | NOT NULL | Nazwa nadana przez użytkownika |
-| style | TEXT | NULL | Opcjonalny styl (np. 'Skandynawski', 'Industrialny') |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
-| deleted_at | TIMESTAMP WITH TIME ZONE | NULL | Data soft delete |
-
-**Ograniczenia:**
-- `user_id` odnosi się do `auth.users(id)` (Supabase)
-- `FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE`
-- `FOREIGN KEY (generated_inspiration_id) REFERENCES generated_inspirations(id) ON DELETE CASCADE`
-
----
-
-### 1.8 analytics_events
-Zdarzenia analityczne (np. InspirationSaved) w formacie uniwersalnym.
+### 1.5 analytics_events
+Zdarzenia analityczne w formacie uniwersalnym (opcjonalne w MVP).
 
 | Kolumna | Typ | Ograniczenia | Opis |
 |---------|-----|--------------|------|
 | id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator zdarzenia |
-| event_type | TEXT | NOT NULL | Typ zdarzenia (np. 'InspirationSaved') |
+| event_type | TEXT | NOT NULL | Typ zdarzenia (np. 'InspirationGenerated') |
 | event_data | JSONB | NOT NULL | Dane zdarzenia w formacie JSONB |
 | user_id | UUID | NULL | Odniesienie do auth.users (nullable dla gości) |
 | created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data zdarzenia |
@@ -152,13 +92,12 @@ Zdarzenia analityczne (np. InspirationSaved) w formacie uniwersalnym.
 **Ograniczenia:**
 - `user_id` odnosi się do `auth.users(id)` (Supabase)
 
-**Przykładowe event_data dla InspirationSaved:**
+**Przykładowe event_data dla InspirationGenerated:**
 ```json
 {
-  "inspiration_id": "uuid",
   "room_id": "uuid",
   "room_type": "kitchen",
-  "style": "Skandynawski"
+    "generation_duration_ms": 4500
 }
 ```
 
@@ -174,12 +113,12 @@ auth.users (Supabase)
 projects
     ↓ 1:N
 rooms ← 1:N → room_types
-    ↓ 1:N              ↓ 1:N
-room_photos      generated_inspirations
-                       ↓ 1:N              ↓ 0..1
-                 inspiration_images    saved_inspirations → auth.users
-                                                ↓
-                                            analytics_events
+    ↓ 1:N
+room_photos
+
+auth.users (Supabase)
+    ↓ 1:N
+analytics_events
 ```
 
 ### 2.2 Opis relacji
@@ -190,12 +129,7 @@ room_photos      generated_inspirations
 | projects | rooms | 1:N | Jeden projekt ma wiele pomieszczeń |
 | room_types | rooms | 1:N | Jeden typ pomieszczenia może być użyty w wielu pomieszczeniach |
 | rooms | room_photos | 1:N | Jedno pomieszczenie ma wiele zdjęć |
-| rooms | generated_inspirations | 1:N | Jedno pomieszczenie ma wiele wygenerowanych inspiracji |
-| generated_inspirations | inspiration_images | 1:N | Jedna inspiracja ma wiele obrazów (dokładnie 2) |
-| generated_inspirations | saved_inspirations | 0..1 | Jedna inspiracja może być zapisana (lub nie) |
-| auth.users | saved_inspirations | 1:N | Jeden użytkownik ma wiele zapisanych inspiracji |
-| rooms | saved_inspirations | 1:N | Jedno pomieszczenie ma wiele zapisanych inspiracji |
-| auth.users | analytics_events | 1:N | Jeden użytkownik generuje wiele zdarzeń analitycznych |
+| auth.users | analytics_events | 1:N | Jeden użytkownik generuje wiele zdarzeń analitycznych (user_id może być NULL dla gości) |
 
 ---
 
@@ -215,17 +149,6 @@ CREATE INDEX idx_rooms_room_type_id ON rooms(room_type_id);
 CREATE INDEX idx_room_photos_room_id ON room_photos(room_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_room_photos_photo_type ON room_photos(photo_type);
 
--- generated_inspirations
-CREATE INDEX idx_generated_inspirations_room_id ON generated_inspirations(room_id) WHERE deleted_at IS NULL;
-
--- inspiration_images
-CREATE INDEX idx_inspiration_images_generated_inspiration_id ON inspiration_images(generated_inspiration_id);
-
--- saved_inspirations
-CREATE INDEX idx_saved_inspirations_user_id ON saved_inspirations(user_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_saved_inspirations_room_id ON saved_inspirations(room_id) WHERE deleted_at IS NULL;
-CREATE INDEX idx_saved_inspirations_generated_inspiration_id ON saved_inspirations(generated_inspiration_id);
-
 -- analytics_events
 CREATE INDEX idx_analytics_events_event_type_created_at ON analytics_events(event_type, created_at);
 CREATE INDEX idx_analytics_events_user_id_created_at ON analytics_events(user_id, created_at);
@@ -233,7 +156,7 @@ CREATE INDEX idx_analytics_events_user_id_created_at ON analytics_events(user_id
 
 ### 3.2 Uzasadnienie indeksów
 
-- **projects, rooms, room_photos, generated_inspirations, saved_inspirations:** Partial indexes z `WHERE deleted_at IS NULL` dla wydajności listowania aktywnych rekordów (soft delete).
+- **projects, rooms, room_photos:** Partial indexes z `WHERE deleted_at IS NULL` dla wydajności listowania aktywnych rekordów (soft delete).
 - **analytics_events:** Composite indexes dla typowych zapytań analitycznych (po typie zdarzenia i czasie, po użytkowniku i czasie).
 
 ---
@@ -246,9 +169,6 @@ CREATE INDEX idx_analytics_events_user_id_created_at ON analytics_events(user_id
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE room_photos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE generated_inspirations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inspiration_images ENABLE ROW LEVEL SECURITY;
-ALTER TABLE saved_inspirations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
 ```
 
@@ -376,139 +296,7 @@ CREATE POLICY delete_own_room_photos ON room_photos
     );
 ```
 
-### 4.5 Polityki RLS dla generated_inspirations
-
-```sql
--- SELECT: Użytkownik widzi inspiracje ze swoich pomieszczeń
-CREATE POLICY select_own_generated_inspirations ON generated_inspirations
-    FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE rooms.id = generated_inspirations.room_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- INSERT: Użytkownik może tworzyć inspiracje tylko dla swoich pomieszczeń
-CREATE POLICY insert_own_generated_inspirations ON generated_inspirations
-    FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE rooms.id = generated_inspirations.room_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- UPDATE: Użytkownik może aktualizować tylko swoje inspiracje
-CREATE POLICY update_own_generated_inspirations ON generated_inspirations
-    FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE rooms.id = generated_inspirations.room_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- DELETE: Użytkownik może usuwać tylko swoje inspiracje
-CREATE POLICY delete_own_generated_inspirations ON generated_inspirations
-    FOR DELETE
-    USING (
-        EXISTS (
-            SELECT 1 FROM rooms
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE rooms.id = generated_inspirations.room_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-```
-
-### 4.6 Polityki RLS dla inspiration_images
-
-```sql
--- SELECT: Użytkownik widzi obrazy ze swoich inspiracji
-CREATE POLICY select_own_inspiration_images ON inspiration_images
-    FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM generated_inspirations
-            JOIN rooms ON rooms.id = generated_inspirations.room_id
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE generated_inspirations.id = inspiration_images.generated_inspiration_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- INSERT: Użytkownik może dodawać obrazy tylko do swoich inspiracji
-CREATE POLICY insert_own_inspiration_images ON inspiration_images
-    FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM generated_inspirations
-            JOIN rooms ON rooms.id = generated_inspirations.room_id
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE generated_inspirations.id = inspiration_images.generated_inspiration_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- UPDATE: Użytkownik może aktualizować tylko swoje obrazy inspiracji
-CREATE POLICY update_own_inspiration_images ON inspiration_images
-    FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM generated_inspirations
-            JOIN rooms ON rooms.id = generated_inspirations.room_id
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE generated_inspirations.id = inspiration_images.generated_inspiration_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- DELETE: Użytkownik może usuwać tylko swoje obrazy inspiracji
-CREATE POLICY delete_own_inspiration_images ON inspiration_images
-    FOR DELETE
-    USING (
-        EXISTS (
-            SELECT 1 FROM generated_inspirations
-            JOIN rooms ON rooms.id = generated_inspirations.room_id
-            JOIN projects ON projects.id = rooms.project_id
-            WHERE generated_inspirations.id = inspiration_images.generated_inspiration_id
-            AND projects.user_id = auth.uid()
-        )
-    );
-```
-
-### 4.7 Polityki RLS dla saved_inspirations
-
-```sql
--- SELECT: Użytkownik widzi tylko swoje zapisane inspiracje
-CREATE POLICY select_own_saved_inspirations ON saved_inspirations
-    FOR SELECT
-    USING (auth.uid() = user_id);
-
--- INSERT: Użytkownik może zapisywać inspiracje tylko dla siebie
-CREATE POLICY insert_own_saved_inspirations ON saved_inspirations
-    FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-
--- UPDATE: Użytkownik może aktualizować tylko swoje zapisane inspiracje
-CREATE POLICY update_own_saved_inspirations ON saved_inspirations
-    FOR UPDATE
-    USING (auth.uid() = user_id);
-
--- DELETE: Użytkownik może usuwać tylko swoje zapisane inspiracje
-CREATE POLICY delete_own_saved_inspirations ON saved_inspirations
-    FOR DELETE
-    USING (auth.uid() = user_id);
-```
-
-### 4.8 Polityki RLS dla analytics_events
+### 4.5 Polityki RLS dla analytics_events
 
 ```sql
 -- SELECT: Brak polityki SELECT – klient nie może odczytywać zdarzeń analitycznych
@@ -522,10 +310,10 @@ CREATE POLICY insert_analytics_events ON analytics_events
 -- Brak UPDATE i DELETE dla klientów
 ```
 
-### 4.9 Uwagi dotyczące RLS
+### 4.6 Uwagi dotyczące RLS
 
 - **room_types:** Tabela słownikowa dostępna dla wszystkich użytkowników (read-only dla klientów, write dla admina).
-- **Supabase Storage:** Polityki Storage należy skonfigurować osobno, aby ograniczyć dostęp do plików per użytkownik na podstawie `auth.uid()` i powiązań z tabelami `room_photos` i `inspiration_images`.
+- **Supabase Storage:** Polityki Storage należy skonfigurować osobno, aby ograniczyć dostęp do plików per użytkownik na podstawie `auth.uid()` i powiązań z tabelą `room_photos`.
 
 ```sql
 -- Polityka dla room_types (read-only dla wszystkich)
@@ -541,12 +329,12 @@ CREATE POLICY select_room_types ON room_types
 ## 5. Dodatkowe uwagi i wyjaśnienia
 
 ### 5.1 Soft Delete
-- Tabele `projects`, `rooms`, `room_photos`, `generated_inspirations`, `saved_inspirations` używają `deleted_at` do soft delete.
+- Tabele `projects`, `rooms`, `room_photos` używają `deleted_at` do soft delete.
 - Partial indexes z `WHERE deleted_at IS NULL` zapewniają wydajność dla zapytań dotyczących aktywnych rekordów.
 - Filtrowanie rekordów usuniętych odbywa się po stronie aplikacji.
 
 ### 5.2 Storage Path
-- Kolumny `storage_path` w tabelach `room_photos` i `inspiration_images` przechowują ścieżkę do pliku w Supabase Storage (nie publiczny URL).
+- Kolumna `storage_path` w tabeli `room_photos` przechowuje ścieżkę do pliku w Supabase Storage (nie publiczny URL).
 - Organizacja ścieżek: `<user_id>/<room_id>/<photo_id>.<ext>` lub podobna struktura.
 - Polityki Supabase Storage oparte o `auth.uid()` i powiązania z tabelami DB.
 
@@ -554,15 +342,6 @@ CREATE POLICY select_room_types ON room_types
 - `event_data` jako JSONB pozwala na elastyczne rozszerzanie struktury zdarzeń bez zmian w schemacie.
 - RLS blokuje odczyt dla klientów – tylko INSERT jest dozwolony.
 - Backend może czytać zdarzenia przez `service_role` key.
-
-### 5.4 Bullet Points
-- `bullet_points` w `generated_inspirations` jako JSONB zawiera tablicę stringów.
-- Przykład: `["Strefowanie kuchni", "Oświetlenie LED"]`.
-
-### 5.5 Relation: generated_inspirations → saved_inspirations
-- Relacja 0..1: jedna inspiracja może być zapisana lub nie.
-- `saved_inspirations.generated_inspiration_id` jest kluczem obcym.
-- Rejestracja zdarzenia `InspirationSaved` odbywa się podczas INSERT do `saved_inspirations`.
 
 ### 5.6 Domyślny Projekt
 - Tworzenie domyślnego projektu dla użytkownika odbywa się po stronie aplikacji (nie przez trigger w DB).
@@ -572,7 +351,7 @@ CREATE POLICY select_room_types ON room_types
 - UUID dla wszystkich ID (wyjątek: room_types używa SERIAL).
 - TIMESTAMP WITH TIME ZONE dla wszystkich dat.
 - ENUM dla `photo_type`.
-- JSONB dla `bullet_points` i `event_data`.
+- JSONB dla `event_data`.
 
 ### 5.8 Walidacja
 - Minimalna walidacja w DB (np. `CHECK (position IN (1, 2))`).
@@ -600,27 +379,12 @@ AND r.deleted_at IS NULL
 ORDER BY r.created_at DESC;
 ```
 
-### 6.2 Pobranie zapisanych inspiracji użytkownika dla pomieszczenia
-```sql
-SELECT si.id, si.name, si.style, si.created_at,
-       gi.bullet_points,
-       ARRAY_AGG(ii.storage_path ORDER BY ii.position) AS image_paths
-FROM saved_inspirations si
-JOIN generated_inspirations gi ON gi.id = si.generated_inspiration_id
-LEFT JOIN inspiration_images ii ON ii.generated_inspiration_id = gi.id
-WHERE si.user_id = auth.uid()
-AND si.room_id = '<room_id>'
-AND si.deleted_at IS NULL
-GROUP BY si.id, si.name, si.style, si.created_at, gi.bullet_points
-ORDER BY si.created_at DESC;
-```
-
-### 6.3 Rejestracja zdarzenia InspirationSaved
+### 6.2 Rejestracja zdarzenia InspirationGenerated
 ```sql
 INSERT INTO analytics_events (event_type, event_data, user_id)
 VALUES (
-    'InspirationSaved',
-    '{"inspiration_id": "<uuid>", "room_id": "<uuid>", "room_type": "kitchen", "style": "Skandynawski"}'::jsonb,
+    'InspirationGenerated',
+    '{"room_id": "<uuid>", "room_type": "kitchen", "generation_duration_ms": 4500}'::jsonb,
     auth.uid()
 );
 ```
@@ -633,9 +397,7 @@ Schemat bazy danych spełnia wszystkie wymagania PRD i decyzje z sesji planowani
 - ✅ Jeden domyślny projekt na użytkownika (bez triggerów)
 - ✅ Pomieszczenia z typami (room_types)
 - ✅ Upload zdjęć (room_photos) z rozróżnieniem photo_type (ENUM)
-- ✅ Generowanie wariantów (generated_inspirations) z bullet points (JSONB)
-- ✅ Obrazy wariantów (inspiration_images) z position i unikalnością
-- ✅ Zapis inspiracji (saved_inspirations) z soft-gate
+- ✅ Generowanie inspiracji bez persystencji wyników w Postgres (w MVP)
 - ✅ Limit generacji egzekwowany na poziomie wejścia do LLM (nie w DB)
 - ✅ Soft delete (deleted_at) dla historii
 - ✅ Analityka (analytics_events) w formacie JSONB
