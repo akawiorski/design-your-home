@@ -15,9 +15,6 @@ import type { Tables, Enums } from "./db/database.types";
 export type RoomTypeEntity = Tables<"room_types">;
 export type RoomEntity = Tables<"rooms">;
 export type RoomPhotoEntity = Tables<"room_photos">;
-export type GeneratedInspirationEntity = Tables<"generated_inspirations">;
-export type InspirationImageEntity = Tables<"inspiration_images">;
-export type SavedInspirationEntity = Tables<"saved_inspirations">;
 export type AnalyticsEventEntity = Tables<"analytics_events">;
 
 export type PhotoType = Enums<"photo_type_enum">;
@@ -176,32 +173,25 @@ export interface RoomPhotosListResponse {
 }
 
 // =============================================================================
-// Generated Inspirations - /api/rooms/{roomId}/generate
+// Inspirations Generation - /api/rooms/{roomId}/generate
 // =============================================================================
 
 /**
- * Inspiration Image DTO - represents generated image
- * Derived from: InspirationImageEntity with public URL
+ * Generated image DTO (not persisted in DB)
  */
-export interface InspirationImageDTO {
-  id: string;
-  generatedInspirationId: string;
+export interface GeneratedImageDTO {
   storagePath: string;
   position: 1 | 2;
   url: string;
-  createdAt: string;
 }
 
 /**
- * Generated Inspiration DTO - represents AI-generated inspiration variant
- * Derived from: GeneratedInspirationEntity with InspirationImageEntity[]
+ * Generated inspiration DTO (not persisted in DB)
  */
 export interface GeneratedInspirationDTO {
-  id: string;
   roomId: string;
   bulletPoints: string[];
-  images: InspirationImageDTO[];
-  createdAt: string;
+  images: GeneratedImageDTO[];
 }
 
 /**
@@ -212,118 +202,11 @@ export interface GenerateInspirationCommand {
 }
 
 /**
- * Response for GET /api/rooms/{roomId}/inspirations
- */
-export interface InspirationListResponse {
-  inspirations: GeneratedInspirationDTO[];
-  pagination: PaginationResponse;
-}
-
-/**
  * Room summary for inspiration details
  */
 export interface RoomSummary {
   id: string;
   roomType: RoomTypeDTO;
-}
-
-/**
- * Saved info metadata for inspiration
- */
-export interface SavedInfo {
-  isSaved: boolean;
-  savedId?: string;
-  name?: string;
-  style?: string;
-}
-
-/**
- * Generated Inspiration DTO with room context and saved status
- * Used in: GET /api/inspirations/{inspirationId}
- */
-export interface GeneratedInspirationWithDetailsDTO extends GeneratedInspirationDTO {
-  room: RoomSummary;
-  savedInfo: SavedInfo;
-}
-
-// =============================================================================
-// Saved Inspirations - /api/saved-inspirations
-// =============================================================================
-
-/**
- * Saved Inspiration DTO - represents user-saved inspiration card
- * Derived from: SavedInspirationEntity with GeneratedInspirationEntity
- */
-export interface SavedInspirationDTO {
-  id: string;
-  userId: string;
-  roomId: string;
-  inspirationId: string;
-  name: string;
-  style: string | null;
-  inspiration: {
-    bulletPoints: string[];
-    images: InspirationImageDTO[];
-  };
-  createdAt: string;
-}
-
-/**
- * Command Model for POST /api/saved-inspirations
- */
-export interface SaveInspirationCommand {
-  inspirationId: string;
-  name: string;
-  style?: string;
-}
-
-/**
- * Saved inspiration with extended room context
- * Used in: GET /api/saved-inspirations/{savedId}
- */
-export interface SavedInspirationWithDetailsDTO extends Omit<SavedInspirationDTO, "roomId" | "inspirationId"> {
-  room: RoomSummary;
-  inspiration: {
-    id: string;
-    bulletPoints: string[];
-    images: InspirationImageDTO[];
-  };
-}
-
-/**
- * Stats aggregation for saved inspirations gallery
- */
-export interface SavedInspirationsStats {
-  total: number;
-  byRoomType: Record<string, number>;
-  byStyle: Record<string, number>;
-}
-
-/**
- * Response for GET /api/saved-inspirations
- */
-export interface SavedInspirationsListResponse {
-  savedInspirations: SavedInspirationDTO[];
-  pagination: PaginationResponse;
-  stats: SavedInspirationsStats;
-}
-
-/**
- * Command Model for PATCH /api/saved-inspirations/{savedId}
- */
-export interface UpdateSavedInspirationCommand {
-  name?: string;
-  style?: string;
-}
-
-/**
- * Response for PATCH /api/saved-inspirations/{savedId}
- */
-export interface UpdateSavedInspirationResponse {
-  id: string;
-  name: string;
-  style: string | null;
-  updatedAt: string;
 }
 
 // =============================================================================
@@ -336,20 +219,9 @@ export interface UpdateSavedInspirationResponse {
 export type BaseAnalyticsEventData = Record<string, unknown>;
 
 /**
- * Event data for InspirationSaved event
- */
-export interface InspirationSavedEventData extends BaseAnalyticsEventData {
-  inspirationId: string;
-  roomId: string;
-  roomType: string;
-  style?: string;
-}
-
-/**
  * Event data for InspirationGenerated event
  */
 export interface InspirationGeneratedEventData extends BaseAnalyticsEventData {
-  inspirationId: string;
   roomId: string;
   roomType: string;
   generationDuration: number;
@@ -376,7 +248,6 @@ export interface PhotoUploadedEventData extends BaseAnalyticsEventData {
  * Union of all supported analytics event data types
  */
 export type AnalyticsEventData =
-  | InspirationSavedEventData
   | InspirationGeneratedEventData
   | RoomCreatedEventData
   | PhotoUploadedEventData
@@ -416,30 +287,6 @@ export interface GetRoomPhotosQueryParams {
   photoType?: PhotoType;
 }
 
-/**
- * Query parameters for GET /api/rooms/{roomId}/inspirations
- */
-export interface GetInspirationsQueryParams {
-  limit?: number;
-  cursor?: string;
-}
-
-/**
- * Sort order for saved inspirations
- */
-export type SavedInspirationsSortBy = "newest" | "oldest" | "name";
-
-/**
- * Query parameters for GET /api/saved-inspirations
- */
-export interface GetSavedInspirationsQueryParams {
-  roomId?: string;
-  style?: string;
-  limit?: number;
-  cursor?: string;
-  sortBy?: SavedInspirationsSortBy;
-}
-
 // =============================================================================
 // Type Guards
 // =============================================================================
@@ -458,13 +305,6 @@ export function isValidPhotoContentType(value: unknown): value is "image/jpeg" |
   return value === "image/jpeg" || value === "image/png" || value === "image/heic";
 }
 
-/**
- * Type guard to check if a value is a valid sort order
- */
-export function isValidSortBy(value: unknown): value is SavedInspirationsSortBy {
-  return value === "newest" || value === "oldest" || value === "name";
-}
-
 // =============================================================================
 // Validation Constants
 // =============================================================================
@@ -475,8 +315,6 @@ export function isValidSortBy(value: unknown): value is SavedInspirationsSortBy 
 export const ValidationRules = {
   PHOTO_DESCRIPTION_MAX_LENGTH: 500,
   INSPIRATION_PROMPT_MAX_LENGTH: 200,
-  SAVED_INSPIRATION_NAME_MAX_LENGTH: 100,
-  SAVED_INSPIRATION_STYLE_MAX_LENGTH: 50,
   MAX_PHOTOS_PER_ROOM: 10,
   MIN_ROOM_PHOTOS: 1,
   MIN_INSPIRATION_PHOTOS: 2,
@@ -492,6 +330,5 @@ export const ValidationRules = {
 export const RateLimits = {
   GENERATE_INSPIRATIONS_PER_HOUR: 20,
   UPLOAD_PHOTOS_PER_HOUR: 30,
-  SAVE_INSPIRATIONS_PER_HOUR: 50,
   GENERAL_API_PER_HOUR: 300,
 } as const;

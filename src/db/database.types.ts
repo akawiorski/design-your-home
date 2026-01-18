@@ -26,87 +26,23 @@ export interface Database {
           event_data: Json;
           event_type: string;
           id: string;
-          user_id: string | null;
+          user_id: string;
         };
         Insert: {
           created_at?: string;
           event_data: Json;
           event_type: string;
           id?: string;
-          user_id?: string | null;
+          user_id: string;
         };
         Update: {
           created_at?: string;
           event_data?: Json;
           event_type?: string;
           id?: string;
-          user_id?: string | null;
+          user_id?: string;
         };
         Relationships: [];
-      };
-      generated_inspirations: {
-        Row: {
-          bullet_points: Json;
-          created_at: string;
-          deleted_at: string | null;
-          id: string;
-          room_id: string;
-        };
-        Insert: {
-          bullet_points: Json;
-          created_at?: string;
-          deleted_at?: string | null;
-          id?: string;
-          room_id: string;
-        };
-        Update: {
-          bullet_points?: Json;
-          created_at?: string;
-          deleted_at?: string | null;
-          id?: string;
-          room_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "generated_inspirations_room_id_fkey";
-            columns: ["room_id"];
-            isOneToOne: false;
-            referencedRelation: "rooms";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      inspiration_images: {
-        Row: {
-          created_at: string;
-          generated_inspiration_id: string;
-          id: string;
-          position: number;
-          storage_path: string;
-        };
-        Insert: {
-          created_at?: string;
-          generated_inspiration_id: string;
-          id?: string;
-          position: number;
-          storage_path: string;
-        };
-        Update: {
-          created_at?: string;
-          generated_inspiration_id?: string;
-          id?: string;
-          position?: number;
-          storage_path?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "inspiration_images_generated_inspiration_id_fkey";
-            columns: ["generated_inspiration_id"];
-            isOneToOne: false;
-            referencedRelation: "generated_inspirations";
-            referencedColumns: ["id"];
-          },
-        ];
       };
       room_photos: {
         Row: {
@@ -198,54 +134,6 @@ export interface Database {
             columns: ["room_type_id"];
             isOneToOne: false;
             referencedRelation: "room_types";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      saved_inspirations: {
-        Row: {
-          created_at: string;
-          deleted_at: string | null;
-          generated_inspiration_id: string;
-          id: string;
-          name: string;
-          room_id: string;
-          style: string | null;
-          user_id: string;
-        };
-        Insert: {
-          created_at?: string;
-          deleted_at?: string | null;
-          generated_inspiration_id: string;
-          id?: string;
-          name: string;
-          room_id: string;
-          style?: string | null;
-          user_id: string;
-        };
-        Update: {
-          created_at?: string;
-          deleted_at?: string | null;
-          generated_inspiration_id?: string;
-          id?: string;
-          name?: string;
-          room_id?: string;
-          style?: string | null;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "saved_inspirations_generated_inspiration_id_fkey";
-            columns: ["generated_inspiration_id"];
-            isOneToOne: false;
-            referencedRelation: "generated_inspirations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "saved_inspirations_room_id_fkey";
-            columns: ["room_id"];
-            isOneToOne: false;
-            referencedRelation: "rooms";
             referencedColumns: ["id"];
           },
         ];

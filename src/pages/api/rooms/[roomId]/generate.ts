@@ -59,6 +59,8 @@ export async function POST(context: APIContext) {
     });
   }
 
-  // TODO: implement remaining steps (room check, counts, rate limit, AI call, storage, inserts).
+  // Uproszczenie MVP: nie zapisujemy w bazie wygenerowanych inspiracji.
+  // Endpoint docelowo zwróci wyniki generacji (bullet points + 2 obrazy) w odpowiedzi.
+  // TODO: implement remaining steps (auth, ownership, rate limit, AI call, optional Storage upload).
   return jsonResponse({ message: "Generation endpoint scaffolding created; implementation pending." }, 501);
 }
