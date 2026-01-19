@@ -101,3 +101,56 @@ export async function getRoomsByUserId(supabase: SupabaseClient, userId: string)
 
   return roomDTOs;
 }
+
+/**
+ * Create a new room for a user
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - User ID who owns the room
+ * @param roomTypeId - Room type ID to create
+ * @returns Created room DTO with room type and zero photo counts
+ * @throws Error if room type doesn't exist or database operation fails
+ */
+export async function createRoom(supabase: SupabaseClient, userId: string, roomTypeId: number): Promise<RoomDTO> {
+  // Validate that room type exists
+  const { data: roomType, error: roomTypeError } = await supabase
+    .from("room_types")
+    .select("id, name, display_name")
+    .eq("id", roomTypeId)
+    .single();
+
+  if (roomTypeError || !roomType) {
+    throw new Error(`Room type with id ${roomTypeId} not found`);
+  }
+
+  // Create the room
+  const { data: room, error: createError } = await supabase
+    .from("rooms")
+    .insert({
+      user_id: userId,
+      room_type_id: roomTypeId,
+    })
+    .select("id, room_type_id, created_at, updated_at")
+    .single();
+
+  if (createError || !room) {
+    throw new Error(`Failed to create room: ${createError?.message || "Unknown error"}`);
+  }
+
+  // Transform to DTO
+  const roomTypeDTO: RoomTypeDTO = {
+    id: roomType.id,
+    name: roomType.name,
+    displayName: roomType.display_name,
+  };
+
+  const roomDTO: RoomDTO = {
+    id: room.id,
+    roomType: roomTypeDTO,
+    photoCount: { room: 0, inspiration: 0 },
+    createdAt: room.created_at,
+    updatedAt: room.updated_at,
+  };
+
+  return roomDTO;
+}
