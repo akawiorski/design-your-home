@@ -5,7 +5,10 @@ import type { Database } from "../db/database.types.ts";
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
 
-export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
+export const supabaseClient =
+  supabaseUrl && supabaseAnonKey ? createClient<Database>(supabaseUrl, supabaseAnonKey) : null;
+
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export type SupabaseClient = BaseSupabaseClient<Database>;
 
