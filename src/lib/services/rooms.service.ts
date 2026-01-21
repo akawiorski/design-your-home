@@ -35,6 +35,7 @@ export async function getRoomsByUserId(supabase: SupabaseClient, userId: string)
     .order("created_at", { ascending: false });
 
   if (roomsError) {
+    console.error("rooms.service.getRoomsByUserId failed", { userId, error: roomsError });
     throw new Error(`Failed to fetch rooms: ${roomsError.message}`);
   }
 
@@ -50,6 +51,7 @@ export async function getRoomsByUserId(supabase: SupabaseClient, userId: string)
     .in("room_id", roomIds);
 
   if (photoCountsError) {
+    console.error("rooms.service.getRoomsByUserId photo counts failed", { roomIds, error: photoCountsError });
     throw new Error(`Failed to fetch photo counts: ${photoCountsError.message}`);
   }
 
@@ -79,6 +81,7 @@ export async function getRoomsByUserId(supabase: SupabaseClient, userId: string)
     const roomTypeData = Array.isArray(room.room_types) ? room.room_types[0] : room.room_types;
 
     if (!roomTypeData) {
+      console.error("rooms.service.getRoomsByUserId missing room type", { roomId: room.id, roomTypeData });
       throw new Error(`Room type not found for room ${room.id}`);
     }
 
@@ -120,6 +123,7 @@ export async function createRoom(supabase: SupabaseClient, userId: string, roomT
     .single();
 
   if (roomTypeError || !roomType) {
+    console.error("rooms.service.createRoom missing room type", { roomTypeId, error: roomTypeError ?? null });
     throw new Error(`Room type with id ${roomTypeId} not found`);
   }
 
@@ -134,6 +138,7 @@ export async function createRoom(supabase: SupabaseClient, userId: string, roomT
     .single();
 
   if (createError || !room) {
+    console.error("rooms.service.createRoom failed", { userId, roomTypeId, error: createError ?? null });
     throw new Error(`Failed to create room: ${createError?.message || "Unknown error"}`);
   }
 
@@ -191,6 +196,7 @@ export async function getRoomWithTypeById(
     .maybeSingle();
 
   if (error) {
+    console.error("rooms.service.getRoomWithTypeById failed", { roomId, error });
     throw new Error(`Failed to fetch room: ${error.message}`);
   }
 
@@ -200,6 +206,7 @@ export async function getRoomWithTypeById(
 
   const roomTypeData = Array.isArray(room.room_types) ? room.room_types[0] : room.room_types;
   if (!roomTypeData) {
+    console.error("rooms.service.getRoomWithTypeById missing room type", { roomId: room.id, roomTypeData });
     throw new Error(`Room type not found for room ${room.id}`);
   }
 

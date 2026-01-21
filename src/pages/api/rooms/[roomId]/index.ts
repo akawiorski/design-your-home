@@ -62,10 +62,7 @@ export async function GET(context: APIContext) {
 
   const { roomId } = parsedParams.data;
 
-  // TODO: Get user ID from authenticated session (Supabase Auth)
-  // For MVP, using DEFAULT_USER_ID as a placeholder
-  // This will be replaced with: const userId = locals.session?.user?.id;
-  const userId = DEFAULT_USER_ID;
+  const userId = locals.session?.user?.id ?? DEFAULT_USER_ID;
 
   if (!userId) {
     return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");

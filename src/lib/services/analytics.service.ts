@@ -34,6 +34,7 @@ export async function trackEvent(
     .single();
 
   if (error) {
+    console.error("analytics.service.trackEvent failed", { userId, eventType, error });
     throw new Error(`Failed to track analytics event: ${error.message}`);
   }
 

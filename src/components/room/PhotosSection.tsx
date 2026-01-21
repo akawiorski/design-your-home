@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import type { PhotoType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -38,6 +40,8 @@ export function PhotosSection({
   onDescriptionChange,
   onUpload,
 }: PhotosSectionProps) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   return (
     <section className="rounded-lg border bg-card p-5" aria-labelledby={`section-${photoType}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -67,31 +71,35 @@ export function PhotosSection({
           onChange={(event) => onDescriptionChange(event.target.value)}
         />
         <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2">
-            <input
-              className="sr-only"
-              type="file"
-              accept="image/jpeg,image/png,image/heic"
-              disabled={!canUpload || isUploading}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) {
-                  onUpload(file);
-                  event.currentTarget.value = "";
-                }
-              }}
-            />
-            <Button type="button" disabled={!canUpload || isUploading} aria-label={`Dodaj zdjęcie ${photoType}`}>
-              {isUploading ? (
-                <span className="flex items-center gap-2">
-                  <Spinner size="sm" />
-                  Wysyłanie...
-                </span>
-              ) : (
-                "Dodaj zdjęcie"
-              )}
-            </Button>
-          </label>
+          <input
+            ref={inputRef}
+            className="sr-only"
+            type="file"
+            accept="image/jpeg,image/png,image/heic"
+            disabled={!canUpload || isUploading}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) {
+                onUpload(file);
+                event.currentTarget.value = "";
+              }
+            }}
+          />
+          <Button
+            type="button"
+            disabled={!canUpload || isUploading}
+            aria-label={`Dodaj zdjęcie ${photoType}`}
+            onClick={() => inputRef.current?.click()}
+          >
+            {isUploading ? (
+              <span className="flex items-center gap-2">
+                <Spinner size="sm" />
+                Wysyłanie...
+              </span>
+            ) : (
+              "Dodaj zdjęcie"
+            )}
+          </Button>
           {!canUpload ? <span className="text-xs text-destructive">Limit zdjęć został osiągnięty.</span> : null}
         </div>
       </div>

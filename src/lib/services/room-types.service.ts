@@ -20,6 +20,7 @@ export async function getAllRoomTypes(supabase: SupabaseClient): Promise<RoomTyp
     .order("id", { ascending: true });
 
   if (error) {
+    console.error("room-types.service.getAllRoomTypes failed", { error });
     throw new Error(`Failed to fetch room types: ${error.message}`);
   }
 

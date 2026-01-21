@@ -91,6 +91,11 @@ const requestBodySchema = z.object({
  */
 export async function POST(context: APIContext) {
   const { locals, params } = context;
+  const supabase = locals.supabaseAdmin ?? locals.supabase;
+
+  if (!supabase) {
+    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+  }
 
   // Extract roomId from path parameters
   const { roomId } = params;
@@ -106,10 +111,7 @@ export async function POST(context: APIContext) {
     return errorResponse(400, "VALIDATION_ERROR", "roomId must be a valid UUID.");
   }
 
-  // TODO: Get user ID from authenticated session (Supabase Auth)
-  // For MVP, using DEFAULT_USER_ID as a placeholder
-  // This will be replaced with: const userId = locals.session?.user?.id;
-  const userId = DEFAULT_USER_ID;
+  const userId = locals.session?.user?.id ?? DEFAULT_USER_ID;
 
   // Validate authentication
   if (!userId) {
@@ -132,7 +134,7 @@ export async function POST(context: APIContext) {
     const body: GetUploadUrlCommand = validationResult.data;
 
     // Step 1: Verify room ownership
-    const isOwner = await verifyRoomOwnership(locals.supabase, roomId, userId);
+    const isOwner = await verifyRoomOwnership(supabase, roomId, userId);
 
     if (!isOwner) {
       // Room either doesn't exist or user doesn't own it
@@ -141,7 +143,7 @@ export async function POST(context: APIContext) {
     }
 
     // Step 2: Check photo count limit
-    const currentPhotoCount = await getPhotoCountByRoomId(locals.supabase, roomId);
+    const currentPhotoCount = await getPhotoCountByRoomId(supabase, roomId);
 
     if (currentPhotoCount >= ValidationRules.MAX_PHOTOS_PER_ROOM) {
       return errorResponse(
@@ -162,11 +164,11 @@ export async function POST(context: APIContext) {
     const photoId = crypto.randomUUID();
 
     // Step 5: Create pending photo record in database
-    await createPendingPhoto(locals.supabase, photoId, roomId, body.photoType, storagePath);
+    await createPendingPhoto(supabase, photoId, roomId, body.photoType, storagePath);
 
     // Step 6: Generate presigned upload URL
     const bucketName = "room-photos"; // Supabase Storage bucket name
-    const uploadUrl = await generatePresignedUploadUrl(locals.supabase, bucketName, storagePath);
+    const uploadUrl = await generatePresignedUploadUrl(supabase, bucketName, storagePath);
 
     // Step 7: Calculate expiration time (1 hour from now)
     const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString();

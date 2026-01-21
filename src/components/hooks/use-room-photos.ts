@@ -49,6 +49,13 @@ export function useRoomPhotos(roomId: string): UseRoomPhotosResult {
           return;
         }
 
+        if (error.status === 404) {
+          setPhotos([]);
+          setCounts({ room: 0, inspiration: 0, total: 0 });
+          setState({ status: "success" });
+          return;
+        }
+
         setState({ status: "error", error: { message: error.message, code: error.code } });
         toast({ variant: "destructive", title: "Błąd", description: error.message });
         return;

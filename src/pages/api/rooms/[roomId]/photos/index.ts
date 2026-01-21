@@ -74,6 +74,11 @@ const errorResponse = (status: number, code: string, message: string, details?: 
  */
 export async function GET(context: APIContext) {
   const { locals, params, url } = context;
+  const supabase = locals.supabaseAdmin ?? locals.supabase;
+
+  if (!supabase) {
+    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+  }
 
   // Extract roomId from path parameters
   const { roomId } = params;
@@ -89,10 +94,7 @@ export async function GET(context: APIContext) {
     return errorResponse(400, "VALIDATION_ERROR", "roomId must be a valid UUID.");
   }
 
-  // TODO: Get user ID from authenticated session (Supabase Auth)
-  // For MVP, using DEFAULT_USER_ID as a placeholder
-  // This will be replaced with: const userId = locals.session?.user?.id;
-  const userId = DEFAULT_USER_ID;
+  const userId = locals.session?.user?.id ?? DEFAULT_USER_ID;
 
   // Validate authentication
   if (!userId) {
@@ -115,7 +117,7 @@ export async function GET(context: APIContext) {
 
   try {
     // Step 1: Verify room ownership
-    const isOwner = await verifyRoomOwnership(locals.supabase, roomId, userId);
+    const isOwner = await verifyRoomOwnership(supabase, roomId, userId);
 
     if (!isOwner) {
       // Room either doesn't exist or user doesn't own it
@@ -124,10 +126,10 @@ export async function GET(context: APIContext) {
     }
 
     // Step 2: Fetch photos with optional filtering
-    const photos = await getRoomPhotos(locals.supabase, roomId, photoType);
+    const photos = await getRoomPhotos(supabase, roomId, photoType);
 
     // Step 3: Get photo counts by type
-    const counts = await getPhotoCountsByType(locals.supabase, roomId);
+    const counts = await getPhotoCountsByType(supabase, roomId);
 
     // Step 4: Prepare response
     const response: RoomPhotosListResponse = {
@@ -169,6 +171,11 @@ const bodySchema = z.object({
  */
 export async function POST(context: APIContext) {
   const { locals, params, request } = context;
+  const supabase = locals.supabaseAdmin ?? locals.supabase;
+
+  if (!supabase) {
+    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+  }
 
   const parsedParams = paramsSchema.safeParse(params);
   if (!parsedParams.success) {
@@ -182,7 +189,7 @@ export async function POST(context: APIContext) {
   // TODO: Get user ID from authenticated session (Supabase Auth)
   // For MVP, using DEFAULT_USER_ID as a placeholder
   // This will be replaced with: const userId = locals.session?.user?.id;
-  const userId = DEFAULT_USER_ID;
+  const userId = locals.session?.user?.id ?? DEFAULT_USER_ID;
 
   if (!userId) {
     return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");
@@ -207,13 +214,13 @@ export async function POST(context: APIContext) {
   const payload = parsedBody.data;
 
   try {
-    const isOwner = await verifyRoomOwnership(locals.supabase, roomId, userId);
+    const isOwner = await verifyRoomOwnership(supabase, roomId, userId);
 
     if (!isOwner) {
       return errorResponse(404, "NOT_FOUND", "Room not found.");
     }
 
-    const confirmedPhoto = await confirmPhotoUpload(locals.supabase, {
+    const confirmedPhoto = await confirmPhotoUpload(supabase, {
       photoId: payload.photoId,
       roomId,
       photoType: payload.photoType,
