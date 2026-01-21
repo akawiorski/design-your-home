@@ -114,6 +114,66 @@ export async function createPendingPhoto(
 }
 
 /**
+ * Confirm a pending photo record after successful upload.
+ *
+ * Ensures the photoId, roomId, storagePath and photoType match the pending record.
+ * Optionally updates description and returns a DTO with signed URL.
+ */
+export async function confirmPhotoUpload(
+  supabase: SupabaseClient,
+  payload: {
+    photoId: string;
+    roomId: string;
+    photoType: PhotoType;
+    storagePath: string;
+    description?: string;
+  }
+): Promise<RoomPhotoDTO | null> {
+  const { data: pendingPhoto, error: findError } = await supabase
+    .from("room_photos")
+    .select("id, room_id, photo_type, storage_path, description, created_at")
+    .eq("id", payload.photoId)
+    .eq("room_id", payload.roomId)
+    .eq("photo_type", payload.photoType)
+    .eq("storage_path", payload.storagePath)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (findError) {
+    throw new Error(`Failed to confirm photo: ${findError.message}`);
+  }
+
+  if (!pendingPhoto) {
+    return null;
+  }
+
+  const nextDescription = payload.description ?? pendingPhoto.description;
+  const { data: updatedPhoto, error: updateError } = await supabase
+    .from("room_photos")
+    .update({ description: nextDescription })
+    .eq("id", payload.photoId)
+    .select("id, room_id, photo_type, storage_path, description, created_at")
+    .single();
+
+  if (updateError || !updatedPhoto) {
+    throw new Error(`Failed to update photo metadata: ${updateError?.message || "Unknown error"}`);
+  }
+
+  const bucketName = "room-photos";
+  const url = await generatePresignedDownloadUrl(supabase, bucketName, updatedPhoto.storage_path);
+
+  return {
+    id: updatedPhoto.id,
+    roomId: updatedPhoto.room_id,
+    photoType: updatedPhoto.photo_type as PhotoType,
+    storagePath: updatedPhoto.storage_path,
+    description: updatedPhoto.description,
+    url,
+    createdAt: updatedPhoto.created_at,
+  };
+}
+
+/**
  * Generate a presigned upload URL for Supabase Storage
  *
  * @param supabase - Supabase client instance

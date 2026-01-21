@@ -1,9 +1,21 @@
 import type { APIContext } from "astro";
+import { z } from "zod";
 
-import type { ErrorResponse, RoomPhotosListResponse, PhotoType } from "../../../../../types";
-import { isPhotoType } from "../../../../../types";
+import type {
+  ErrorResponse,
+  RoomPhotosListResponse,
+  PhotoType,
+  CreateRoomPhotoCommand,
+  RoomPhotoDTO,
+} from "../../../../../types";
+import { isPhotoType, ValidationRules } from "../../../../../types";
 import { DEFAULT_USER_ID } from "../../../../../db/supabase.client";
-import { verifyRoomOwnership, getRoomPhotos, getPhotoCountsByType } from "../../../../../lib/services/photos.service";
+import {
+  verifyRoomOwnership,
+  getRoomPhotos,
+  getPhotoCountsByType,
+  confirmPhotoUpload,
+} from "../../../../../lib/services/photos.service";
 
 export const prerender = false;
 
@@ -130,6 +142,96 @@ export async function GET(context: APIContext) {
 
     // Return generic error response
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while fetching photos.", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
+const paramsSchema = z.object({
+  roomId: z.string().uuid(),
+});
+
+const bodySchema = z.object({
+  photoId: z.string().uuid(),
+  storagePath: z.string().min(1, "storagePath is required"),
+  photoType: z.enum(["room", "inspiration"], {
+    errorMap: () => ({ message: "photoType must be 'room' or 'inspiration'" }),
+  }),
+  description: z.string().max(ValidationRules.PHOTO_DESCRIPTION_MAX_LENGTH).optional(),
+});
+
+/**
+ * POST /api/rooms/{roomId}/photos
+ *
+ * Create a photo record after successful upload to storage.
+ *
+ * Authentication: Required (authenticated user, must own room)
+ */
+export async function POST(context: APIContext) {
+  const { locals, params, request } = context;
+
+  const parsedParams = paramsSchema.safeParse(params);
+  if (!parsedParams.success) {
+    return errorResponse(400, "INVALID_PARAMS", "Invalid roomId path parameter.", {
+      issues: parsedParams.error.issues,
+    });
+  }
+
+  const { roomId } = parsedParams.data;
+
+  // TODO: Get user ID from authenticated session (Supabase Auth)
+  // For MVP, using DEFAULT_USER_ID as a placeholder
+  // This will be replaced with: const userId = locals.session?.user?.id;
+  const userId = DEFAULT_USER_ID;
+
+  if (!userId) {
+    return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");
+  }
+
+  let body: CreateRoomPhotoCommand;
+  try {
+    body = await request.json();
+  } catch (error) {
+    return errorResponse(400, "INVALID_JSON", "Request body must be valid JSON.", {
+      message: error instanceof Error ? error.message : "Invalid JSON",
+    });
+  }
+
+  const parsedBody = bodySchema.safeParse(body);
+  if (!parsedBody.success) {
+    return errorResponse(400, "VALIDATION_ERROR", "Request body validation failed.", {
+      issues: parsedBody.error.issues,
+    });
+  }
+
+  const payload = parsedBody.data;
+
+  try {
+    const isOwner = await verifyRoomOwnership(locals.supabase, roomId, userId);
+
+    if (!isOwner) {
+      return errorResponse(404, "NOT_FOUND", "Room not found.");
+    }
+
+    const confirmedPhoto = await confirmPhotoUpload(locals.supabase, {
+      photoId: payload.photoId,
+      roomId,
+      photoType: payload.photoType,
+      storagePath: payload.storagePath,
+      description: payload.description,
+    });
+
+    if (!confirmedPhoto) {
+      return errorResponse(404, "NOT_FOUND", "Photo not found.", {
+        photoId: payload.photoId,
+      });
+    }
+
+    const response: RoomPhotoDTO = confirmedPhoto;
+
+    return jsonResponse(response, 201);
+  } catch (error) {
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while creating photo.", {
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }
