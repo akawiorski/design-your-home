@@ -154,3 +154,64 @@ export async function createRoom(supabase: SupabaseClient, userId: string, roomT
 
   return roomDTO;
 }
+
+/**
+ * Get a single room (with room type) by id.
+ *
+ * Note: This does not enforce ownership checks by itself.
+ * The caller should compare returned userId with the authenticated user id.
+ */
+export async function getRoomWithTypeById(
+  supabase: SupabaseClient,
+  roomId: string
+): Promise<{
+  id: string;
+  userId: string;
+  roomType: RoomTypeDTO;
+  createdAt: string;
+  updatedAt: string;
+} | null> {
+  const { data: room, error } = await supabase
+    .from("rooms")
+    .select(
+      `
+      id,
+      user_id,
+      created_at,
+      updated_at,
+      room_types (
+        id,
+        name,
+        display_name
+      )
+    `
+    )
+    .eq("id", roomId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to fetch room: ${error.message}`);
+  }
+
+  if (!room) {
+    return null;
+  }
+
+  const roomTypeData = Array.isArray(room.room_types) ? room.room_types[0] : room.room_types;
+  if (!roomTypeData) {
+    throw new Error(`Room type not found for room ${room.id}`);
+  }
+
+  return {
+    id: room.id,
+    userId: room.user_id,
+    roomType: {
+      id: roomTypeData.id,
+      name: roomTypeData.name,
+      displayName: roomTypeData.display_name,
+    },
+    createdAt: room.created_at,
+    updatedAt: room.updated_at,
+  };
+}
