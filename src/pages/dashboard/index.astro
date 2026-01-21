@@ -1,14 +1,8 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import { DashboardPage } from "../../components/dashboard/DashboardPage";
 ---
 
 <Layout title="Dashboard - Design Your Home">
-  <main class="flex min-h-screen items-center justify-center px-6">
-    <section class="max-w-md text-center" aria-labelledby="dashboard-title">
-      <h1 id="dashboard-title" class="text-3xl font-semibold">Dashboard</h1>
-      <p class="mt-3 text-base text-muted-foreground" aria-live="polite">
-        Placeholder view. Implement the dashboard here.
-      </p>
-    </section>
-  </main>
+  <DashboardPage client:only="react" />
 </Layout>

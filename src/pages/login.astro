@@ -1,14 +1,28 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/auth/LoginForm";
+
+const redirectTo = Astro.url.searchParams.get("redirectTo");
 ---
 
 <Layout title="Login - Design Your Home">
-  <main class="flex min-h-screen items-center justify-center px-6">
-    <section class="max-w-md text-center" aria-labelledby="login-title">
-      <h1 id="login-title" class="text-3xl font-semibold">Login</h1>
-      <p class="mt-3 text-base text-muted-foreground" aria-live="polite">
-        Placeholder view. Implement the login form here.
-      </p>
+  <main class="grid min-h-screen place-items-center px-6">
+    <section class="w-full max-w-md" aria-labelledby="login-title">
+      <header class="text-center">
+        <h1 id="login-title" class="text-3xl font-semibold">Zaloguj się</h1>
+        <p class="mt-3 text-base text-muted-foreground">
+          Wprowadź adres email i hasło, aby uzyskać dostęp do swojego projektu.
+        </p>
+      </header>
+
+      <div class="mt-8">
+        <LoginForm
+          client:only="react"
+          redirectTo={redirectTo}
+          supabaseUrl={import.meta.env.SUPABASE_URL}
+          supabaseKey={import.meta.env.SUPABASE_KEY}
+        />
+      </div>
     </section>
   </main>
 </Layout>

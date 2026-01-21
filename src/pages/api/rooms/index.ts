@@ -53,6 +53,11 @@ const bodySchema = z.object({
  */
 export async function GET(context: APIContext) {
   const { locals } = context;
+  const supabase = locals.supabaseAdmin ?? locals.supabase;
+
+  if (!supabase) {
+    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+  }
 
   // TODO: Get user ID from authenticated session (Supabase Auth)
   // For MVP, using DEFAULT_USER_ID as a placeholder
@@ -66,7 +71,7 @@ export async function GET(context: APIContext) {
 
   try {
     // Fetch rooms using service layer
-    const rooms = await getRoomsByUserId(locals.supabase, userId);
+    const rooms = await getRoomsByUserId(supabase, userId);
 
     // Prepare response
     const response: RoomsListResponse = {
@@ -104,6 +109,11 @@ export async function GET(context: APIContext) {
  */
 export async function POST(context: APIContext) {
   const { locals, request } = context;
+  const supabase = locals.supabaseAdmin ?? locals.supabase;
+
+  if (!supabase) {
+    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+  }
 
   // TODO: Get user ID from authenticated session (Supabase Auth)
   // For MVP, using DEFAULT_USER_ID as a placeholder
@@ -136,7 +146,7 @@ export async function POST(context: APIContext) {
 
   try {
     // Create room using service layer
-    const room: RoomDTO = await createRoom(locals.supabase, userId, roomTypeId);
+    const room: RoomDTO = await createRoom(supabase, userId, roomTypeId);
 
     return jsonResponse(room, 201);
   } catch (error) {
@@ -145,6 +155,12 @@ export async function POST(context: APIContext) {
     if (errorMessage.includes("not found")) {
       return errorResponse(404, "NOT_FOUND", `Room type with id ${roomTypeId} not found.`, {
         roomTypeId,
+      });
+    }
+
+    if (errorMessage.toLowerCase().includes("row-level security")) {
+      return errorResponse(403, "FORBIDDEN", "Insufficient permissions to create room.", {
+        message: errorMessage,
       });
     }
 
