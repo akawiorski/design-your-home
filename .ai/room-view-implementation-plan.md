@@ -17,8 +17,6 @@ Zakres MVP zgodny z PRD:
     - `RoomPage` z propsem `roomId` pobranym z `Astro.params.roomId`.
   - Tryb renderowania jak na dashboardzie: `client:only="react"`.
 
-Uwaga dot. backendu: w repo nie ma jeszcze implementacji `GET /api/rooms/{roomId}` oraz `POST /api/rooms/{roomId}/photos` (potwierdzenie uploadu) – plan zakłada ich dostępność zgodnie z API Plan, ale zawiera też fallbacki i punkty integracyjne.
-
 ## 3. Struktura komponentów
 Proponowana struktura (feature-first):
 - `src/pages/rooms/[roomId].astro` – strona Astro

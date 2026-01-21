@@ -1,4 +1,21 @@
-import type { CreateRoomCommand, ErrorResponse, RoomDTO, RoomTypesListResponse, RoomsListResponse } from "@/types";
+import type {
+  CreateRoomCommand,
+  CreateRoomPhotoCommand,
+  ErrorResponse,
+  GenerateInspirationCommand,
+  GeneratedInspirationDTO,
+  GetRoomPhotosQueryParams,
+  GetUploadUrlCommand,
+  GetUploadUrlResponse,
+  RoomDTO,
+  RoomPhotoDTO,
+  RoomPhotosListResponse,
+  RoomTypesListResponse,
+  RoomsListResponse,
+  RoomWithPhotosDTO,
+  TrackAnalyticsEventCommand,
+  TrackAnalyticsEventResponse,
+} from "@/types";
 
 export class ApiError extends Error {
   status: number;
@@ -61,4 +78,71 @@ export const createRoom = (payload: CreateRoomCommand) =>
       body: JSON.stringify(payload satisfies CreateRoomCommand),
     },
     "Nie udało się utworzyć pokoju. Spróbuj ponownie."
+  );
+
+export const getRoom = (roomId: string) =>
+  requestJson<RoomWithPhotosDTO>(
+    `/api/rooms/${roomId}`,
+    { method: "GET", credentials: "include" },
+    "Nie udało się pobrać danych pokoju. Spróbuj ponownie."
+  );
+
+export const getRoomPhotos = (roomId: string, params?: GetRoomPhotosQueryParams) => {
+  const searchParams = new URLSearchParams();
+  if (params?.photoType) {
+    searchParams.set("photoType", params.photoType);
+  }
+  const query = searchParams.toString();
+  const url = query ? `/api/rooms/${roomId}/photos?${query}` : `/api/rooms/${roomId}/photos`;
+
+  return requestJson<RoomPhotosListResponse>(
+    url,
+    { method: "GET", credentials: "include" },
+    "Nie udało się pobrać zdjęć pokoju. Spróbuj ponownie."
+  );
+};
+
+export const getUploadUrl = (roomId: string, payload: GetUploadUrlCommand) =>
+  requestJson<GetUploadUrlResponse>(
+    `/api/rooms/${roomId}/photos/upload-url`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload satisfies GetUploadUrlCommand),
+    },
+    "Nie udało się wygenerować linku do uploadu. Spróbuj ponownie."
+  );
+
+export const confirmPhoto = (roomId: string, payload: CreateRoomPhotoCommand) =>
+  requestJson<RoomPhotoDTO>(
+    `/api/rooms/${roomId}/photos`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload satisfies CreateRoomPhotoCommand),
+    },
+    "Nie udało się zapisać zdjęcia. Spróbuj ponownie."
+  );
+
+export const generateInspiration = (roomId: string, payload: GenerateInspirationCommand) =>
+  requestJson<GeneratedInspirationDTO>(
+    `/api/rooms/${roomId}/generate`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload satisfies GenerateInspirationCommand),
+    },
+    "Nie udało się wygenerować inspiracji. Spróbuj ponownie."
+  );
+
+export const trackAnalyticsEvent = (payload: TrackAnalyticsEventCommand) =>
+  requestJson<TrackAnalyticsEventResponse>(
+    "/api/analytics/events",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload satisfies TrackAnalyticsEventCommand),
+    },
+    "Nie udało się zapisać zdarzenia analitycznego."
   );

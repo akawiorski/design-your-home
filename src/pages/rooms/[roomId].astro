@@ -1,0 +1,10 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { RoomPage } from "../../components/room/RoomPage";
+
+const { roomId } = Astro.params;
+---
+
+<Layout title="Pokój - Design Your Home">
+  {roomId ? <RoomPage client:only="react" roomId={roomId} /> : null}
+</Layout>
