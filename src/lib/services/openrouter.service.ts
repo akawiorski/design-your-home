@@ -1,4 +1,10 @@
-import type { GenerateRoomInspirationInput, GeneratedInspirationDTO, OpenRouterResponseSchema } from "../../types";
+import type {
+  GenerateRoomInspirationInput,
+  GenerateSimpleInspirationInput,
+  GenerateSimpleInspirationResponse,
+  GeneratedInspirationDTO,
+  OpenRouterResponseSchema,
+} from "../../types";
 import { ValidationRules } from "../../types";
 
 interface OpenRouterModelParams {
@@ -76,6 +82,29 @@ export class OpenRouterService {
     };
   }
 
+  public async generateSimpleAdvice(input: GenerateSimpleInspirationInput): Promise<GenerateSimpleInspirationResponse> {
+    this.validateSimpleInput(input);
+
+    const payload = {
+      model: this.modelName,
+      messages: [
+        { role: "system", content: this.buildSimpleSystemMessage() },
+        { role: "user", content: this.buildSimpleUserMessage(input) },
+      ],
+      temperature: this.defaultParams.temperature ?? 0.7,
+      top_p: this.defaultParams.top_p ?? 0.9,
+      max_tokens: this.defaultParams.max_tokens ?? 600,
+    };
+
+    const response = await this.callOpenRouter(payload);
+    const advice = this.extractTextFromResponse(response);
+
+    return {
+      roomId: input.roomId,
+      advice,
+    };
+  }
+
   private validateInput(input: GenerateRoomInspirationInput) {
     if (!input.roomId) {
       throw new Error("roomId is required.");
@@ -112,10 +141,36 @@ export class OpenRouterService {
     }
   }
 
+  private validateSimpleInput(input: GenerateSimpleInspirationInput) {
+    if (!input.roomId) {
+      throw new Error("roomId is required.");
+    }
+
+    if (!input.roomType) {
+      throw new Error("roomType is required.");
+    }
+
+    if (!input.description?.trim()) {
+      throw new Error("description is required.");
+    }
+
+    if (input.description.length > ValidationRules.INSPIRATION_PROMPT_MAX_LENGTH) {
+      throw new Error("Description exceeds maximum length.");
+    }
+  }
+
   private buildSystemMessage() {
     return (
       "Jesteś asystentem projektowania wnętrz. Na podstawie zdjęcia pokoju i inspiracji " +
       "generujesz dwie wizualizacje tego samego pomysłu. Zwróć wyłącznie JSON zgodny ze schematem."
+    );
+  }
+
+  private buildSimpleSystemMessage() {
+    return (
+      "Jesteś asystentem projektowania wnętrz. Na podstawie opisu pomieszczenia " +
+      "zwróć krótki, konkretny opis porad do urządzania pokoju w języku polskim. " +
+      "Nie zwracaj JSON, tylko czysty tekst."
     );
   }
 
@@ -136,6 +191,10 @@ export class OpenRouterService {
       `Zdjęcie pokoju: ${input.roomPhoto.url}${roomDescription ? ` — ${roomDescription}` : ""}\n` +
       `${inspirationLines}${promptBlock}`
     );
+  }
+
+  private buildSimpleUserMessage(input: GenerateSimpleInspirationInput) {
+    return `Typ pokoju: ${input.roomType}.\nOpis: ${input.description.trim()}`;
   }
 
   private buildResponseFormat() {
@@ -238,6 +297,27 @@ export class OpenRouterService {
     }
 
     return payload;
+  }
+
+  private extractTextFromResponse(response: OpenRouterChatResponse) {
+    const content = response.choices?.[0]?.message?.content;
+
+    if (!content) {
+      throw new Error("OpenRouter response missing content.");
+    }
+
+    const text = Array.isArray(content)
+      ? content
+          .map((item) => item.text)
+          .filter(Boolean)
+          .join(" ")
+      : content;
+
+    if (!text || typeof text !== "string") {
+      throw new Error("OpenRouter response content is invalid.");
+    }
+
+    return text.trim();
   }
 
   private safeParseJson(value: string) {

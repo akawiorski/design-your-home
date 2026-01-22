@@ -7,6 +7,7 @@ import { useRoom } from "@/components/hooks/use-room";
 import { useRoomPhotos } from "@/components/hooks/use-room-photos";
 import { usePhotoUpload } from "@/components/hooks/use-photo-upload";
 import { useGenerateInspiration } from "@/components/hooks/use-generate-inspiration";
+import { useGenerateSimpleInspiration } from "@/components/hooks/use-generate-simple-inspiration";
 import { useUploadDescriptions } from "@/components/hooks/use-upload-description";
 import { RoomHeader } from "@/components/room/RoomHeader";
 import { PhotosSection } from "@/components/room/PhotosSection";
@@ -30,9 +31,11 @@ export function RoomPage({ roomId }: RoomPageProps) {
   const { descriptions, setDescription } = useUploadDescriptions();
   const { state: uploadState, upload } = usePhotoUpload(roomId, refreshPhotos);
   const { state: generateState, generate } = useGenerateInspiration(roomId);
+  const { state: generateSimpleState, generate: generateSimple } = useGenerateSimpleInspiration(roomId);
   const [state, setState] = useState<RoomPageState>({
     prompt: "",
     results: [],
+    descriptionResult: null,
   });
 
   const canGenerate =
@@ -61,9 +64,25 @@ export function RoomPage({ roomId }: RoomPageProps) {
       setState((prev) => ({
         prompt: "",
         results: [response, ...prev.results],
+        descriptionResult: prev.descriptionResult,
       }));
     }
   }, [generate, state.prompt]);
+
+  const handleGenerateDescription = useCallback(async () => {
+    const description = state.prompt.trim();
+    if (!description) {
+      return;
+    }
+
+    const response = await generateSimple({ description });
+    if (response) {
+      setState((prev) => ({
+        ...prev,
+        descriptionResult: response.advice,
+      }));
+    }
+  }, [generateSimple, state.prompt]);
 
   if (roomState.status === "loading") {
     return (
@@ -140,6 +159,10 @@ export function RoomPage({ roomId }: RoomPageProps) {
             canGenerate={canGenerate}
             isGenerating={generateState.status === "loading"}
             onGenerate={handleGenerate}
+            canGenerateDescription={state.prompt.trim().length > 0 && generateSimpleState.status !== "loading"}
+            isGeneratingDescription={generateSimpleState.status === "loading"}
+            onGenerateDescription={handleGenerateDescription}
+            descriptionResult={state.descriptionResult}
           />
         </div>
       </div>

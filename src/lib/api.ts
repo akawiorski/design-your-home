@@ -3,6 +3,8 @@ import type {
   CreateRoomPhotoCommand,
   ErrorResponse,
   GenerateInspirationCommand,
+  GenerateSimpleInspirationCommand,
+  GenerateSimpleInspirationResponse,
   GeneratedInspirationDTO,
   GetRoomPhotosQueryParams,
   GetUploadUrlCommand,
@@ -133,6 +135,17 @@ export const generateInspiration = (roomId: string, payload: GenerateInspiration
       body: JSON.stringify(payload satisfies GenerateInspirationCommand),
     },
     "Nie udało się wygenerować inspiracji. Spróbuj ponownie."
+  );
+
+export const generateSimpleInspiration = (roomId: string, payload: GenerateSimpleInspirationCommand) =>
+  requestJson<GenerateSimpleInspirationResponse>(
+    `/api/rooms/${roomId}/generate-simple`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload satisfies GenerateSimpleInspirationCommand),
+    },
+    "Nie udało się wygenerować opisu. Spróbuj ponownie."
   );
 
 export const trackAnalyticsEvent = (payload: TrackAnalyticsEventCommand) =>

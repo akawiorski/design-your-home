@@ -195,10 +195,25 @@ export interface GeneratedInspirationDTO {
 }
 
 /**
+ * Generated simple inspiration response (text-only)
+ */
+export interface GenerateSimpleInspirationResponse {
+  roomId: string;
+  advice: string;
+}
+
+/**
  * Command Model for POST /api/rooms/{roomId}/generate
  */
 export interface GenerateInspirationCommand {
   prompt?: string;
+}
+
+/**
+ * Command Model for POST /api/rooms/{roomId}/generate-simple
+ */
+export interface GenerateSimpleInspirationCommand {
+  description: string;
 }
 
 /**
@@ -212,10 +227,19 @@ export interface GenerateRoomInspirationInput {
     url: string;
     description?: string | null;
   };
-  inspirationPhotos: Array<{
+  inspirationPhotos: {
     url: string;
     description?: string | null;
-  }>;
+  }[];
+}
+
+/**
+ * Input model for OpenRouter simple text advice
+ */
+export interface GenerateSimpleInspirationInput {
+  roomId: string;
+  roomType: string;
+  description: string;
 }
 
 /**
@@ -223,10 +247,10 @@ export interface GenerateRoomInspirationInput {
  */
 export interface OpenRouterResponseSchema {
   bulletPoints: string[];
-  images: Array<{
+  images: {
     url: string;
     position: 1 | 2;
-  }>;
+  }[];
 }
 
 /**

@@ -7,6 +7,10 @@ interface GenerateSectionProps {
   canGenerate: boolean;
   isGenerating: boolean;
   onGenerate: () => void;
+  canGenerateDescription: boolean;
+  isGeneratingDescription: boolean;
+  onGenerateDescription: () => void;
+  descriptionResult?: string | null;
 }
 
 export function GenerateSection({
@@ -15,6 +19,10 @@ export function GenerateSection({
   canGenerate,
   isGenerating,
   onGenerate,
+  canGenerateDescription,
+  isGeneratingDescription,
+  onGenerateDescription,
+  descriptionResult,
 }: GenerateSectionProps) {
   return (
     <section className="rounded-xl border border-border/70 bg-card/95 p-5 shadow-sm">
@@ -38,6 +46,28 @@ export function GenerateSection({
           "Generuj"
         )}
       </Button>
+      <Button
+        className="mt-3 w-full"
+        type="button"
+        variant="secondary"
+        disabled={!canGenerateDescription || isGeneratingDescription}
+        onClick={onGenerateDescription}
+      >
+        {isGeneratingDescription ? (
+          <span className="flex items-center justify-center gap-2">
+            <Spinner size="sm" />
+            Generowanie opisu...
+          </span>
+        ) : (
+          "Generuj opis"
+        )}
+      </Button>
+      {descriptionResult ? (
+        <div className="mt-4 rounded-lg border bg-background p-3 text-sm text-foreground">
+          <p className="font-medium">Opis aranżacji</p>
+          <p className="mt-2 whitespace-pre-line text-muted-foreground">{descriptionResult}</p>
+        </div>
+      ) : null}
     </section>
   );
 }

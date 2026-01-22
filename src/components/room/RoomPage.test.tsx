@@ -7,6 +7,7 @@ const useRoomMock = vi.fn();
 const useRoomPhotosMock = vi.fn();
 const usePhotoUploadMock = vi.fn();
 const useGenerateInspirationMock = vi.fn();
+const useGenerateSimpleInspirationMock = vi.fn();
 const useUploadDescriptionsMock = vi.fn();
 
 vi.mock("@/components/hooks/use-room", () => ({
@@ -25,6 +26,10 @@ vi.mock("@/components/hooks/use-generate-inspiration", () => ({
   useGenerateInspiration: (...args: unknown[]) => useGenerateInspirationMock(...args),
 }));
 
+vi.mock("@/components/hooks/use-generate-simple-inspiration", () => ({
+  useGenerateSimpleInspiration: (...args: unknown[]) => useGenerateSimpleInspirationMock(...args),
+}));
+
 vi.mock("@/components/hooks/use-upload-description", () => ({
   useUploadDescriptions: (...args: unknown[]) => useUploadDescriptionsMock(...args),
 }));
@@ -32,11 +37,13 @@ vi.mock("@/components/hooks/use-upload-description", () => ({
 describe("RoomPage", () => {
   const uploadMock = vi.fn();
   const generateMock = vi.fn();
+  const generateSimpleMock = vi.fn();
   const setDescriptionMock = vi.fn();
 
   beforeEach(() => {
     uploadMock.mockReset().mockResolvedValue(undefined);
     generateMock.mockReset();
+    generateSimpleMock.mockReset();
     setDescriptionMock.mockReset();
 
     useRoomMock.mockReturnValue({
@@ -67,6 +74,11 @@ describe("RoomPage", () => {
     useGenerateInspirationMock.mockReturnValue({
       state: { status: "idle" },
       generate: generateMock,
+    });
+
+    useGenerateSimpleInspirationMock.mockReturnValue({
+      state: { status: "idle" },
+      generate: generateSimpleMock,
     });
 
     useUploadDescriptionsMock.mockReturnValue({
