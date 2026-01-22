@@ -43,7 +43,10 @@ export function PhotosSection({
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <section className="rounded-lg border bg-card p-5" aria-labelledby={`section-${photoType}`}>
+    <section
+      className="rounded-xl border border-border/70 bg-card/95 p-5 shadow-sm"
+      aria-labelledby={`section-${photoType}`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 id={`section-${photoType}`} className="text-lg font-semibold">
@@ -64,7 +67,7 @@ export function PhotosSection({
         <input
           id={`desc-${photoType}`}
           type="text"
-          className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+          className="w-full rounded-md border bg-background px-3 py-2 text-sm shadow-sm"
           placeholder="Np. widok od wejścia"
           value={descriptionValue}
           maxLength={500}

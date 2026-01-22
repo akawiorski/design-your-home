@@ -17,11 +17,11 @@ export function GenerateSection({
   onGenerate,
 }: GenerateSectionProps) {
   return (
-    <section className="rounded-lg border bg-card p-5">
+    <section className="rounded-xl border border-border/70 bg-card/95 p-5 shadow-sm">
       <h2 className="text-lg font-semibold">Generowanie</h2>
       <p className="mt-1 text-sm text-muted-foreground">Opcjonalnie dodaj krótki opis, aby lepiej dopasować wynik.</p>
       <textarea
-        className="mt-3 w-full rounded-md border bg-background p-3 text-sm"
+        className="mt-3 w-full rounded-md border bg-background p-3 text-sm shadow-sm"
         rows={4}
         maxLength={200}
         placeholder="Np. jasne drewno, styl skandynawski, dużo światła"

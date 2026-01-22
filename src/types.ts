@@ -202,6 +202,34 @@ export interface GenerateInspirationCommand {
 }
 
 /**
+ * Input model for OpenRouter generation service
+ */
+export interface GenerateRoomInspirationInput {
+  roomId: string;
+  roomType: string;
+  prompt?: string;
+  roomPhoto: {
+    url: string;
+    description?: string | null;
+  };
+  inspirationPhotos: Array<{
+    url: string;
+    description?: string | null;
+  }>;
+}
+
+/**
+ * Expected OpenRouter JSON response payload
+ */
+export interface OpenRouterResponseSchema {
+  bulletPoints: string[];
+  images: Array<{
+    url: string;
+    position: 1 | 2;
+  }>;
+}
+
+/**
  * Room summary for inspiration details
  */
 export interface RoomSummary {

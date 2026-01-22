@@ -9,7 +9,7 @@ export function PhotoRequirementsTracker({ counts }: PhotoRequirementsTrackerPro
   const isInspirationReady = counts.inspiration >= ValidationRules.MIN_INSPIRATION_PHOTOS;
 
   return (
-    <section className="rounded-lg border bg-card p-5" aria-live="polite">
+    <section className="rounded-xl border border-border/70 bg-card/95 p-5 shadow-sm" aria-live="polite">
       <h2 className="text-lg font-semibold">Wymagania generacji</h2>
       <ul className="mt-3 space-y-2 text-sm">
         <li
