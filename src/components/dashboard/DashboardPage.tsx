@@ -43,7 +43,7 @@ export function DashboardPage() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 py-10">
+    <main className="py-10">
       <DashboardHeader onCreateClick={() => setIsCreateOpen(true)} isCreateDisabled={roomsState.status === "loading"} />
 
       <RoomsSection
