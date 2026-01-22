@@ -112,8 +112,10 @@ describe("RoomPage", () => {
 
     render(<RoomPage roomId="room-1" />);
 
-    fireEvent.change(screen.getByRole("textbox"), { target: { value: "  jasny styl  " } });
-    fireEvent.click(screen.getByRole("button", { name: "Generuj" }));
+    const promptInput = screen.getAllByPlaceholderText("Np. jasne drewno, styl skandynawski, dużo światła")[0];
+    fireEvent.change(promptInput, { target: { value: "  jasny styl  " } });
+    const generateButton = screen.getAllByRole("button", { name: "Generuj" })[0];
+    fireEvent.click(generateButton);
 
     await waitFor(() => {
       expect(generateMock).toHaveBeenCalledWith({ prompt: "jasny styl" });
