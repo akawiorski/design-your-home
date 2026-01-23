@@ -108,6 +108,20 @@ npm run preview
 | `npm run lint:fix` | Fix ESLint issues                    |
 | `npm run format`   | Format files with Prettier           |
 
+## Testing
+
+### Unit & component tests (Vitest)
+
+```bash
+npm run test
+```
+
+Testy jednostkowe i komponentowe są uruchamiane przez Vitest (z wykorzystaniem Testing Library i środowiska jsdom).
+
+### E2E tests (recommended)
+
+Testy E2E są rekomendowane w planie testów, ale nie są jeszcze skonfigurowane w repozytorium.
+
 ## Project scope
 
 In scope (MVP):

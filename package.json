@@ -8,6 +8,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "test": "vitest",
+    "test:e2e": "playwright test",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write ."
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@eslint/compat": "1.2.7",
     "@eslint/js": "9.23.0",
+    "@playwright/test": "^1.58.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.2.0",
     "@typescript-eslint/eslint-plugin": "8.28.0",

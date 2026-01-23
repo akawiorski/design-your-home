@@ -23,23 +23,33 @@ describe("OpenRouterService", () => {
   });
 
   it("returns mapped inspiration when response is valid", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        choices: [
-          {
-            message: {
-              content: JSON.stringify({
-                bulletPoints: ["Test"],
+    // Mock fetch for image downloads (arrayBuffer needed)
+    fetchMock.mockImplementation(async (url: string) => {
+      if (typeof url === "string" && (url.includes("room/photo") || url.includes("insp/"))) {
+        return {
+          ok: true,
+          arrayBuffer: async () => new ArrayBuffer(8),
+        };
+      }
+      // Mock OpenRouter API call
+      return {
+        ok: true,
+        json: async () => ({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  bulletPoints: ["Test"],
+                }),
                 images: [
-                  { url: "https://img/1", position: 1 },
-                  { url: "https://img/2", position: 2 },
+                  { index: 0, type: "url", image_url: { url: "https://img/1" } },
+                  { index: 1, type: "url", image_url: { url: "https://img/2" } },
                 ],
-              }),
+              },
             },
-          },
-        ],
-      }),
+          ],
+        }),
+      };
     });
 
     const service = createService();

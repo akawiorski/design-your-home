@@ -18,3 +18,8 @@ CI/CD i Hosting:
 
 - GitHub Actions
 - DigitalOcean
+
+Testing:
+
+- Vitest
+- Playwright
