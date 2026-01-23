@@ -2,7 +2,6 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 
 import type { ErrorResponse, TrackAnalyticsEventCommand, TrackAnalyticsEventResponse } from "../../../types";
-import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { trackEvent, isSupportedEventType } from "../../../lib/services/analytics.service";
 
 export const prerender = false;
@@ -86,10 +85,8 @@ const requestBodySchema = z.object({
 export async function POST(context: APIContext) {
   const { locals } = context;
 
-  // TODO: Get user ID from authenticated session (Supabase Auth)
-  // For MVP, using DEFAULT_USER_ID as a placeholder
-  // This will be replaced with: const userId = locals.session?.user?.id;
-  const userId = DEFAULT_USER_ID;
+  // Get user ID from authenticated session
+  const userId = locals.user?.id;
 
   // Validate authentication
   if (!userId) {

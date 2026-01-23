@@ -29,7 +29,7 @@ export const DEFAULT_USER_ID = "525b1489-40a7-470a-afc4-65f1aa737cfe";
 // Server-side Supabase client with cookie management
 export const cookieOptions: CookieOptionsWithName = {
   path: "/",
-  secure: true,
+  secure: import.meta.env.PROD, // Only secure in production
   httpOnly: true,
   sameSite: "lax",
 };
@@ -43,10 +43,18 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
 
 export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
   if (!supabaseUrl || !supabaseAnonKey) {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.error("[Supabase] Missing configuration:", {
+        hasUrl: Boolean(supabaseUrl),
+        hasKey: Boolean(supabaseAnonKey),
+      });
+    }
     return null;
   }
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookieOptions,
     cookies: {
       getAll() {
         return parseCookieHeader(context.headers.get("Cookie") ?? "");

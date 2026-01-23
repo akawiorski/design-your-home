@@ -15,26 +15,26 @@ const PUBLIC_PATHS = [
 ];
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  // Always provide client instances for backward compatibility
-  context.locals.supabase = supabaseClient;
+  // Create server-side Supabase instance with session context
+  const serverSupabase = createSupabaseServerInstance({
+    cookies: context.cookies,
+    headers: context.request.headers,
+  });
+
+  // Use server-side client with session context, fallback to basic client
+  context.locals.supabase = serverSupabase ?? supabaseClient;
   context.locals.supabaseAdmin = supabaseServiceClient ?? supabaseClient;
 
   // Check if current path is public
   const isPublicPath = PUBLIC_PATHS.includes(context.url.pathname);
 
-  // Create server-side Supabase instance for session management
-  const supabase = createSupabaseServerInstance({
-    cookies: context.cookies,
-    headers: context.request.headers,
-  });
-
-  if (supabase) {
+  if (serverSupabase) {
     try {
       // Get user session
       const {
         data: { user },
         error,
-      } = await supabase.auth.getUser();
+      } = await serverSupabase.auth.getUser();
 
       if (!error && user) {
         // Store user info in locals
@@ -44,7 +44,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         };
 
         // Optionally store full session
-        const { data: sessionData } = await supabase.auth.getSession();
+        const { data: sessionData } = await serverSupabase.auth.getSession();
         context.locals.session = sessionData.session;
       }
     } catch (error) {

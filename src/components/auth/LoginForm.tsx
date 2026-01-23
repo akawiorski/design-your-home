@@ -1,6 +1,7 @@
 import { useCallback, useId, useMemo, useState, type FormEvent } from "react";
 
 import { Button } from "../ui/button";
+import { loginSchema } from "../../lib/validation/auth.schemas";
 
 interface LoginFormProps {
   redirectTo?: string | null;
@@ -15,9 +16,6 @@ interface LoginFormErrors {
   email?: string;
   password?: string;
 }
-
-const MIN_PASSWORD_LENGTH = 4;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const getSafeRedirectPath = (value?: string | null) => {
   if (!value) {
@@ -56,23 +54,19 @@ const mapAuthErrorMessage = (message?: string | null) => {
 };
 
 const validate = (values: LoginFormValues): LoginFormErrors => {
+  const result = loginSchema.safeParse(values);
+
+  if (result.success) {
+    return {};
+  }
+
   const errors: LoginFormErrors = {};
-
-  if (!values.email.trim()) {
-    errors.email = "Podaj adres email.";
-  }
-
-  if (!errors.email && !EMAIL_PATTERN.test(values.email.trim())) {
-    errors.email = "Podaj poprawny adres email.";
-  }
-
-  if (!values.password) {
-    errors.password = "Podaj hasło.";
-  }
-
-  if (!errors.password && values.password.length < MIN_PASSWORD_LENGTH) {
-    errors.password = `Hasło powinno mieć co najmniej ${MIN_PASSWORD_LENGTH} znaków.`;
-  }
+  result.error.errors.forEach((err) => {
+    const field = err.path[0] as keyof LoginFormErrors;
+    if (field) {
+      errors[field] = err.message;
+    }
+  });
 
   return errors;
 };

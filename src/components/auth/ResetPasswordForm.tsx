@@ -5,18 +5,23 @@ import { supabaseClient } from "../../db/supabase.client";
 
 const PASSWORD_MIN_LENGTH = 4;
 
+interface FormErrors {
+  password?: string;
+  confirmPassword?: string;
+}
+
 export default function ResetPasswordForm() {
   const [values, setValues] = useState({
     password: "",
     confirmPassword: "",
   });
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
 
   const validate = () => {
-    const newErrors: any = {};
+    const newErrors: FormErrors = {};
     if (values.password.length < PASSWORD_MIN_LENGTH) {
       newErrors.password = `Hasło powinno mieć co najmniej ${PASSWORD_MIN_LENGTH} znaków.`;
     }
@@ -51,6 +56,7 @@ export default function ResetPasswordForm() {
           setFormError("Wystąpił błąd. Spróbuj ponownie.");
         }
         if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
           console.error("Password reset error:", error);
         }
         return;
@@ -66,6 +72,7 @@ export default function ResetPasswordForm() {
     } catch (error) {
       setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
       if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
         console.error("Unexpected password reset error:", error);
       }
     } finally {

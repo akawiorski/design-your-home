@@ -2,7 +2,6 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 
 import type { ErrorResponse, RoomsListResponse, CreateRoomCommand, RoomDTO } from "../../../types";
-import { DEFAULT_USER_ID } from "../../../db/supabase.client";
 import { getRoomsByUserId, createRoom } from "../../../lib/services/rooms.service";
 
 export const prerender = false;
@@ -53,16 +52,14 @@ const bodySchema = z.object({
  */
 export async function GET(context: APIContext) {
   const { locals } = context;
-  const supabase = locals.supabaseAdmin ?? locals.supabase;
+  const supabase = locals.supabase;
 
   if (!supabase) {
     return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
   }
 
-  // TODO: Get user ID from authenticated session (Supabase Auth)
-  // For MVP, using DEFAULT_USER_ID as a placeholder
-  // This will be replaced with: const userId = locals.session?.user?.id;
-  const userId = DEFAULT_USER_ID;
+  // Get user ID from authenticated session
+  const userId = locals.user?.id;
 
   // Validate authentication
   if (!userId) {
@@ -109,16 +106,14 @@ export async function GET(context: APIContext) {
  */
 export async function POST(context: APIContext) {
   const { locals, request } = context;
-  const supabase = locals.supabaseAdmin ?? locals.supabase;
+  const supabase = locals.supabase;
 
   if (!supabase) {
     return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
   }
 
-  // TODO: Get user ID from authenticated session (Supabase Auth)
-  // For MVP, using DEFAULT_USER_ID as a placeholder
-  // This will be replaced with: const userId = locals.session?.user?.id;
-  const userId = DEFAULT_USER_ID;
+  // Get user ID from authenticated session
+  const userId = locals.user?.id;
 
   // Validate authentication
   if (!userId) {
