@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Spinner } from '../ui/spinner';
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Spinner } from "../ui/spinner";
+import { supabaseClient } from "../../db/supabase.client";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPasswordForm() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,7 +14,7 @@ export default function ForgotPasswordForm() {
 
   const validate = () => {
     if (!email || !EMAIL_PATTERN.test(email)) {
-      setError('Podaj poprawny adres email.');
+      setError("Podaj poprawny adres email.");
       return false;
     }
     setError(null);
@@ -24,15 +25,38 @@ export default function ForgotPasswordForm() {
     e.preventDefault();
     if (!validate()) return;
 
+    if (!supabaseClient) {
+      setFormError("Usługa jest chwilowo niedostępna.");
+      return;
+    }
+
     setIsLoading(true);
     setFormError(null);
 
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
-    // Mock success
-    setSuccess(true);
-    setIsLoading(false);
+      if (error) {
+        // For security, don't reveal if email exists
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.error("Password reset error:", error);
+        }
+      }
+
+      // Always show success message (security best practice)
+      setSuccess(true);
+    } catch (error) {
+      setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error("Unexpected password reset error:", error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (success) {
@@ -47,7 +71,9 @@ export default function ForgotPasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {formError && <p className="text-red-500">{formError}</p>}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          Email
+        </label>
         <input
           id="email"
           type="email"
@@ -61,10 +87,14 @@ export default function ForgotPasswordForm() {
           aria-invalid={!!error}
           aria-describedby={error ? "email-error" : undefined}
         />
-        {error && <p id="email-error" className="mt-1 text-sm text-red-600">{error}</p>}
+        {error && (
+          <p id="email-error" className="mt-1 text-sm text-red-600">
+            {error}
+          </p>
+        )}
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? <Spinner /> : 'Wyślij link'}
+        {isLoading ? <Spinner /> : "Wyślij link"}
       </Button>
     </form>
   );

@@ -3,83 +3,92 @@
 ## 1. Tabele z kolumnami, typami danych i ograniczeniami
 
 ### 1.1 room_types
+
 Słownik typów pomieszczeń (kitchen, bathroom, bedroom, living_room itp.).
 
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | SERIAL | PRIMARY KEY | Unikalny identyfikator typu pomieszczenia |
-| name | TEXT | NOT NULL, UNIQUE | Nazwa typu (snake_case, np. 'kitchen') |
-| display_name | TEXT | NOT NULL | Nazwa wyświetlana użytkownikowi (np. 'Kuchnia') |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
+| Kolumna      | Typ                      | Ograniczenia            | Opis                                            |
+| ------------ | ------------------------ | ----------------------- | ----------------------------------------------- |
+| id           | SERIAL                   | PRIMARY KEY             | Unikalny identyfikator typu pomieszczenia       |
+| name         | TEXT                     | NOT NULL, UNIQUE        | Nazwa typu (snake_case, np. 'kitchen')          |
+| display_name | TEXT                     | NOT NULL                | Nazwa wyświetlana użytkownikowi (np. 'Kuchnia') |
+| created_at   | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia                                 |
 
 **Przykładowe dane:**
+
 - (1, 'kitchen', 'Kuchnia')
 - (2, 'bathroom', 'Łazienka')
 - (3, 'bedroom', 'Sypialnia')
 - (4, 'living_room', 'Salon')
 
-
 ---
 
 ### 1.2 rooms
+
 Pomieszczenia przypisane bezpośrednio do użytkownika (bez koncepcji projektu w MVP).
 
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator pomieszczenia |
-| user_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do auth.users(id) |
-| room_type_id | INTEGER | NOT NULL, FOREIGN KEY | Odniesienie do room_types.id |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
-| updated_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data ostatniej modyfikacji |
+| Kolumna      | Typ                      | Ograniczenia                           | Opis                                 |
+| ------------ | ------------------------ | -------------------------------------- | ------------------------------------ |
+| id           | UUID                     | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator pomieszczenia |
+| user_id      | UUID                     | NOT NULL, FOREIGN KEY                  | Odniesienie do auth.users(id)        |
+| room_type_id | INTEGER                  | NOT NULL, FOREIGN KEY                  | Odniesienie do room_types.id         |
+| created_at   | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now()                | Data utworzenia                      |
+| updated_at   | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now()                | Data ostatniej modyfikacji           |
 
 **Ograniczenia:**
+
 - `FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE`
 - `FOREIGN KEY (room_type_id) REFERENCES room_types(id) ON DELETE RESTRICT`
 
 ---
 
 ### 1.3 room_photos
+
 Zdjęcia wejściowe przypisane do pomieszczenia: zdjęcia "pomieszczenia" oraz "inspiracji".
 
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator zdjęcia |
-| room_id | UUID | NOT NULL, FOREIGN KEY | Odniesienie do rooms.id |
-| photo_type | photo_type_enum | NOT NULL | Typ zdjęcia: 'room' lub 'inspiration' |
-| storage_path | TEXT | NOT NULL | Ścieżka do pliku w Supabase Storage |
-| description | TEXT | NULL | Opcjonalny opis zdjęcia |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data utworzenia |
+| Kolumna      | Typ                      | Ograniczenia                           | Opis                                  |
+| ------------ | ------------------------ | -------------------------------------- | ------------------------------------- |
+| id           | UUID                     | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator zdjęcia        |
+| room_id      | UUID                     | NOT NULL, FOREIGN KEY                  | Odniesienie do rooms.id               |
+| photo_type   | photo_type_enum          | NOT NULL                               | Typ zdjęcia: 'room' lub 'inspiration' |
+| storage_path | TEXT                     | NOT NULL                               | Ścieżka do pliku w Supabase Storage   |
+| description  | TEXT                     | NULL                                   | Opcjonalny opis zdjęcia               |
+| created_at   | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now()                | Data utworzenia                       |
 
 **ENUM:**
+
 ```sql
 CREATE TYPE photo_type_enum AS ENUM ('room', 'inspiration');
 ```
 
 **Ograniczenia:**
+
 - `FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE`
 
 ---
 
 ### 1.4 analytics_events
+
 Zdarzenia analityczne w formacie uniwersalnym (opcjonalne w MVP).
 
-| Kolumna | Typ | Ograniczenia | Opis |
-|---------|-----|--------------|------|
-| id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator zdarzenia |
-| event_type | TEXT | NOT NULL | Typ zdarzenia (np. 'InspirationGenerated') |
-| event_data | JSONB | NOT NULL | Dane zdarzenia w formacie JSONB |
-| user_id | UUID | NOT NULL | Odniesienie do auth.users |
-| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now() | Data zdarzenia |
+| Kolumna    | Typ                      | Ograniczenia                           | Opis                                       |
+| ---------- | ------------------------ | -------------------------------------- | ------------------------------------------ |
+| id         | UUID                     | PRIMARY KEY, DEFAULT gen_random_uuid() | Unikalny identyfikator zdarzenia           |
+| event_type | TEXT                     | NOT NULL                               | Typ zdarzenia (np. 'InspirationGenerated') |
+| event_data | JSONB                    | NOT NULL                               | Dane zdarzenia w formacie JSONB            |
+| user_id    | UUID                     | NOT NULL                               | Odniesienie do auth.users                  |
+| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT now()                | Data zdarzenia                             |
 
 **Ograniczenia:**
+
 - `user_id` odnosi się do `auth.users(id)` (Supabase)
 
 **Przykładowe event_data dla InspirationGenerated:**
+
 ```json
 {
   "room_id": "uuid",
   "room_type": "kitchen",
-    "generation_duration_ms": 4500
+  "generation_duration_ms": 4500
 }
 ```
 
@@ -103,12 +112,12 @@ analytics_events
 
 ### 2.2 Opis relacji
 
-| Tabela źródłowa | Tabela docelowa | Relacja | Opis |
-|----------------|-----------------|---------|------|
-| auth.users | rooms | 1:N | Jeden użytkownik ma wiele pomieszczeń |
-| room_types | rooms | 1:N | Jeden typ pomieszczenia może być użyty w wielu pomieszczeniach |
-| rooms | room_photos | 1:N | Jedno pomieszczenie ma wiele zdjęć |
-| auth.users | analytics_events | 1:N | Jeden użytkownik generuje wiele zdarzeń analitycznych |
+| Tabela źródłowa | Tabela docelowa  | Relacja | Opis                                                           |
+| --------------- | ---------------- | ------- | -------------------------------------------------------------- |
+| auth.users      | rooms            | 1:N     | Jeden użytkownik ma wiele pomieszczeń                          |
+| room_types      | rooms            | 1:N     | Jeden typ pomieszczenia może być użyty w wielu pomieszczeniach |
+| rooms           | room_photos      | 1:N     | Jedno pomieszczenie ma wiele zdjęć                             |
+| auth.users      | analytics_events | 1:N     | Jeden użytkownik generuje wiele zdarzeń analitycznych          |
 
 ---
 
@@ -235,27 +244,32 @@ CREATE POLICY select_room_types ON room_types
 ## 5. Dodatkowe uwagi i wyjaśnienia
 
 ### 5.1 Storage Path
+
 - Kolumna `storage_path` w tabeli `room_photos` przechowuje ścieżkę do pliku w Supabase Storage (nie publiczny URL).
 - Organizacja ścieżek: `<user_id>/<room_id>/<photo_id>.<ext>` lub podobna struktura.
 - Polityki Supabase Storage oparte o `auth.uid()` i powiązania z tabelami DB.
 
 ### 5.2 Analytics Events
+
 - `event_data` jako JSONB pozwala na elastyczne rozszerzanie struktury zdarzeń bez zmian w schemacie.
 - RLS blokuje odczyt dla klientów – tylko INSERT jest dozwolony.
 - Backend może czytać zdarzenia przez `service_role` key.
 
 ### 5.6 Formatowanie i Typy
+
 - UUID dla wszystkich ID (wyjątek: room_types używa SERIAL).
 - TIMESTAMP WITH TIME ZONE dla wszystkich dat.
 - ENUM dla `photo_type`.
 - JSONB dla `event_data`.
 
 ### 5.7 Walidacja
+
 - Minimalna walidacja w DB (np. `CHECK (position IN (1, 2))`).
 - Większość walidacji (np. min 1 zdjęcie pomieszczenia, 2 inspiracje, max 10 plików) egzekwowana po stronie aplikacji.
 - Limit generacji (5 wariantów dziennie) egzekwowany na poziomie wejścia do LLM, nie w bazie danych.
 
 ### 5.8 Skalowalność
+
 - Indeksy na FK i typowe filtry zapewniają wydajność.
 - JSONB dla event_data umożliwia elastyczne rozszerzanie analityki.
 - Struktura DB pozwala na przyszłą rozbudowę (np. współdzielenie inspiracji lub grupowanie pokoi w przyszłości).
@@ -265,6 +279,7 @@ CREATE POLICY select_room_types ON room_types
 ## 6. Przykładowe Zapytania
 
 ### 6.1 Pobranie pomieszczeń użytkownika
+
 ```sql
 SELECT r.id, r.user_id, rt.display_name AS room_type, r.created_at
 FROM rooms r
@@ -274,6 +289,7 @@ ORDER BY r.created_at DESC;
 ```
 
 ### 6.2 Rejestracja zdarzenia InspirationGenerated
+
 ```sql
 INSERT INTO analytics_events (event_type, event_data, user_id)
 VALUES (
@@ -288,6 +304,7 @@ VALUES (
 ## 7. Podsumowanie
 
 Schemat bazy danych spełnia wszystkie wymagania PRD i decyzje z sesji planowania:
+
 - ✅ Pomieszczenia z typami (room_types)
 - ✅ Upload zdjęć (room_photos) z rozróżnieniem photo_type (ENUM)
 - ✅ Generowanie inspiracji bez persystencji wyników w Postgres (w MVP)

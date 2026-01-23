@@ -1,31 +1,56 @@
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Spinner } from '../ui/spinner';
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Spinner } from "../ui/spinner";
+import { supabaseClient } from "../../db/supabase.client";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 4;
 
+const mapAuthErrorMessage = (message?: string) => {
+  if (!message) return "Wystąpił błąd. Spróbuj ponownie.";
+
+  const lowered = message.toLowerCase();
+
+  if (lowered.includes("user already registered") || lowered.includes("already registered")) {
+    return "Konto z tym adresem już istnieje.";
+  }
+
+  if (lowered.includes("rate limit") || lowered.includes("too many")) {
+    return "Zbyt wiele prób. Spróbuj ponownie za chwilę.";
+  }
+
+  return "Wystąpił błąd. Spróbuj ponownie.";
+};
+
 export default function RegisterForm() {
   const [values, setValues] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const validate = () => {
-    const newErrors: any = {};
+    const newErrors: {
+      email?: string;
+      password?: string;
+      confirmPassword?: string;
+    } = {};
     if (!values.email || !EMAIL_PATTERN.test(values.email)) {
-      newErrors.email = 'Podaj poprawny adres email.';
+      newErrors.email = "Podaj poprawny adres email.";
     }
     if (values.password.length < PASSWORD_MIN_LENGTH) {
       newErrors.password = `Hasło powinno mieć co najmniej ${PASSWORD_MIN_LENGTH} znaków.`;
     }
     if (values.password !== values.confirmPassword) {
-      newErrors.confirmPassword = 'Hasła nie są identyczne.';
+      newErrors.confirmPassword = "Hasła nie są identyczne.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -35,15 +60,40 @@ export default function RegisterForm() {
     e.preventDefault();
     if (!validate()) return;
 
+    if (!supabaseClient) {
+      setFormError("Usługa rejestracji jest chwilowo niedostępna.");
+      return;
+    }
+
     setIsLoading(true);
     setFormError(null);
 
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock success
-    setRegistrationSuccess(true);
-    setIsLoading(false);
+    try {
+      const { error } = await supabaseClient.auth.signUp({
+        email: values.email.trim(),
+        password: values.password,
+      });
+
+      if (error) {
+        setFormError(mapAuthErrorMessage(error.message));
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.error("Registration error:", error);
+        }
+        return;
+      }
+
+      // Success
+      setRegistrationSuccess(true);
+    } catch (error) {
+      setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.error("Unexpected registration error:", error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (registrationSuccess) {
@@ -58,7 +108,9 @@ export default function RegisterForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {formError && <p className="text-red-500">{formError}</p>}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          Email
+        </label>
         <input
           id="email"
           type="email"
@@ -72,10 +124,16 @@ export default function RegisterForm() {
           aria-invalid={!!errors.email}
           aria-describedby={errors.email ? "email-error" : undefined}
         />
-        {errors.email && <p id="email-error" className="mt-1 text-sm text-red-600">{errors.email}</p>}
+        {errors.email && (
+          <p id="email-error" className="mt-1 text-sm text-red-600">
+            {errors.email}
+          </p>
+        )}
       </div>
       <div>
-        <label htmlFor="password"  className="block text-sm font-medium text-gray-700">Hasło</label>
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          Hasło
+        </label>
         <input
           id="password"
           type="password"
@@ -89,10 +147,16 @@ export default function RegisterForm() {
           aria-invalid={!!errors.password}
           aria-describedby={errors.password ? "password-error" : undefined}
         />
-        {errors.password && <p id="password-error" className="mt-1 text-sm text-red-600">{errors.password}</p>}
+        {errors.password && (
+          <p id="password-error" className="mt-1 text-sm text-red-600">
+            {errors.password}
+          </p>
+        )}
       </div>
       <div>
-        <label htmlFor="confirmPassword"  className="block text-sm font-medium text-gray-700">Potwierdź hasło</label>
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+          Potwierdź hasło
+        </label>
         <input
           id="confirmPassword"
           type="password"
@@ -106,10 +170,14 @@ export default function RegisterForm() {
           aria-invalid={!!errors.confirmPassword}
           aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
         />
-        {errors.confirmPassword && <p id="confirm-password-error" className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
+        {errors.confirmPassword && (
+          <p id="confirm-password-error" className="mt-1 text-sm text-red-600">
+            {errors.confirmPassword}
+          </p>
+        )}
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? <Spinner /> : 'Utwórz konto'}
+        {isLoading ? <Spinner /> : "Utwórz konto"}
       </Button>
     </form>
   );

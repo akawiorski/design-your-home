@@ -1,12 +1,15 @@
 ---
 import "../styles/global.css";
 import { Toaster } from "../components/ui/toaster";
+import UserMenu from "../components/layout/UserMenu";
 
 interface Props {
   title?: string;
 }
 
 const { title = "10x Astro Starter" } = Astro.props;
+// Get user from middleware session management
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -19,6 +22,15 @@ const { title = "10x Astro Starter" } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
+    {
+      user && (
+        <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div class="mx-auto flex h-14 max-w-6xl items-center justify-end px-6">
+            <UserMenu client:load userEmail={user.email} />
+          </div>
+        </header>
+      )
+    }
     <div class="mx-auto w-full max-w-6xl px-6">
       <slot />
     </div>

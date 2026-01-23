@@ -1,17 +1,36 @@
-import { Button } from '../ui/button';
+import { useState } from "react";
+import { Button } from "../ui/button";
 
 export default function UserMenu({ userEmail }: { userEmail?: string }) {
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleLogout = async () => {
-    // Mock logout
-    await new Promise(resolve => setTimeout(resolve, 500));
-    window.location.href = '/login';
+    try {
+      setIsLoading(true);
+
+      // Use API endpoint for server-side logout
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        console.error("Logout error");
+      }
+
+      // Always redirect to login after logout attempt
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still redirect even on error
+      window.location.href = "/login";
+    }
   };
 
   return (
     <div className="flex items-center gap-4">
       {userEmail && <span className="text-sm text-gray-600">{userEmail}</span>}
-      <Button variant="outline" size="sm" onClick={handleLogout}>
-        Wyloguj
+      <Button variant="outline" size="sm" onClick={handleLogout} disabled={isLoading}>
+        {isLoading ? "Wylogowywanie..." : "Wyloguj"}
       </Button>
     </div>
   );

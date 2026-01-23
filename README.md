@@ -24,22 +24,22 @@ The core flow in MVP:
 - Add rooms to the default apartment from predefined room types (e.g., kitchen, bathroom, bedroom, living room).
 - Select a room to work on (all actions are scoped to the active room).
 - Upload images per room:
-	- minimum: 1 “unfinished room” photo and 2 inspiration photos,
-	- formats: `jpg`, `png`, `heic`,
-	- total upload limit: up to 10 files,
-	- optional short description per photo.
+  - minimum: 1 “unfinished room” photo and 2 inspiration photos,
+  - formats: `jpg`, `png`, `heic`,
+  - total upload limit: up to 10 files,
+  - optional short description per photo.
 - Generate inspiration variants for the selected room:
-	- each variant is an “inspiration card” with 2 images of the same idea,
-	- output format: `jpg`, resolution: 1080×720,
-	- each variant includes short bullet-point suggestions.
+  - each variant is an “inspiration card” with 2 images of the same idea,
+  - output format: `jpg`, resolution: 1080×720,
+  - each variant includes short bullet-point suggestions.
 - Generate multiple variants for the same room (with daily limits):
-	- max 5 variants/day per authenticated user,
-	- for anonymous users the limit is enforced per device/browser.
+  - max 5 variants/day per authenticated user,
+  - for anonymous users the limit is enforced per device/browser.
 - Save an inspiration card:
-	- saving requires authentication (soft-gate),
-	- user provides a name (and optional style),
-	- saved cards are assigned to a room,
-	- saved inspirations are private per user.
+  - saving requires authentication (soft-gate),
+  - user provides a name (and optional style),
+  - saved cards are assigned to a room,
+  - saved inspirations are private per user.
 
 Analytics (MVP): record the `InspirationSaved` event.
 
@@ -98,15 +98,15 @@ npm run preview
 
 ## Available scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start Astro dev server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview the production build locally |
-| `npm run astro` | Run the Astro CLI |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Fix ESLint issues |
-| `npm run format` | Format files with Prettier |
+| Script             | Description                          |
+| ------------------ | ------------------------------------ |
+| `npm run dev`      | Start Astro dev server               |
+| `npm run build`    | Build for production                 |
+| `npm run preview`  | Preview the production build locally |
+| `npm run astro`    | Run the Astro CLI                    |
+| `npm run lint`     | Run ESLint                           |
+| `npm run lint:fix` | Fix ESLint issues                    |
+| `npm run format`   | Format files with Prettier           |
 
 ## Project scope
 

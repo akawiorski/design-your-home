@@ -1,8 +1,18 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { AuthRedirector } from "../components/auth/AuthRedirector";
+
+// Server-side redirect based on auth status
+const user = Astro.locals.user;
+
+if (user) {
+  // User is logged in, redirect to dashboard
+  return Astro.redirect("/dashboard");
+}
+
+// User is not logged in, redirect to login page
+return Astro.redirect("/login");
 ---
 
 <Layout title="Design Your Home">
-  <AuthRedirector client:load />
+  <!-- This page should never render as it always redirects -->
 </Layout>

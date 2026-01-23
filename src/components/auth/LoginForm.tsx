@@ -1,13 +1,9 @@
-import { useCallback, useEffect, useId, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useId, useMemo, useState, type FormEvent } from "react";
 
 import { Button } from "../ui/button";
-import { Spinner } from "../ui/spinner";
-import { createSupabaseClient, isSupabaseConfigured, supabaseClient } from "../../db/supabase.client";
 
 interface LoginFormProps {
   redirectTo?: string | null;
-  supabaseUrl?: string | null;
-  supabaseKey?: string | null;
 }
 
 interface LoginFormValues {
@@ -81,7 +77,7 @@ const validate = (values: LoginFormValues): LoginFormErrors => {
   return errors;
 };
 
-export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: LoginFormProps) {
+export default function LoginForm({ redirectTo }: LoginFormProps) {
   const formId = useId();
   const emailErrorId = `${formId}-email-error`;
   const passwordErrorId = `${formId}-password-error`;
@@ -95,17 +91,6 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
-  const [isSupabaseReady, setIsSupabaseReady] = useState(true);
-  const isBusy = isSubmitting || isCheckingSession;
-
-  const runtimeSupabaseClient = useMemo(() => {
-    if (supabaseClient) {
-      return supabaseClient;
-    }
-
-    return createSupabaseClient(supabaseUrl ?? undefined, supabaseKey ?? undefined);
-  }, [supabaseKey, supabaseUrl]);
 
   const validationErrors = useMemo(() => validate(values), [values]);
   const canSubmit = !validationErrors.email && !validationErrors.password;
@@ -121,52 +106,13 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
     setValues((prev) => ({ ...prev, password: value }));
   }, []);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      if ((!isSupabaseConfigured && !runtimeSupabaseClient) || !runtimeSupabaseClient) {
-        setIsSupabaseReady(false);
-        setFormError("Usługa logowania jest chwilowo niedostępna.");
-        setIsCheckingSession(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await runtimeSupabaseClient.auth.getSession();
-
-        if (error) {
-          if (import.meta.env.DEV) {
-            // eslint-disable-next-line no-console
-            console.error("Błąd sprawdzania sesji:", error);
-          }
-          setIsCheckingSession(false);
-          return;
-        }
-
-        if (data.session) {
-          const safeRedirect = getSafeRedirectPath(redirectTo);
-          window.location.href = safeRedirect ?? "/dashboard";
-          return;
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
-          console.error("Nieoczekiwany błąd sprawdzania sesji:", error);
-        }
-      } finally {
-        setIsCheckingSession(false);
-      }
-    };
-
-    void checkSession();
-  }, [redirectTo, runtimeSupabaseClient]);
-
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       setHasSubmitted(true);
       setFormError(null);
 
-      if (isBusy || !isSupabaseReady) {
+      if (isSubmitting) {
         return;
       }
 
@@ -176,41 +122,39 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
         return;
       }
 
-      if ((!isSupabaseConfigured && !runtimeSupabaseClient) || !runtimeSupabaseClient) {
-        setFormError("Usługa logowania jest chwilowo niedostępna.");
-        if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
-          console.error("Supabase is not configured.");
-        }
-        return;
-      }
-
       try {
         setIsSubmitting(true);
 
-        const { data, error } = await runtimeSupabaseClient.auth.signInWithPassword({
-          email: values.email.trim(),
-          password: values.password,
+        // Use API endpoint for server-side authentication
+        const response = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: values.email.trim(),
+            password: values.password,
+          }),
         });
 
-        if (error) {
-          setFormError(mapAuthErrorMessage(error.message));
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          setFormError(mapAuthErrorMessage(data.error));
 
           if (import.meta.env.DEV) {
             // eslint-disable-next-line no-console
-            console.error("Błąd logowania:", error);
+            console.error("Błąd logowania:", data.error);
           }
 
+          setIsSubmitting(false);
           return;
         }
 
-        if (!data.session) {
-          setFormError("Nie udało się zalogować. Spróbuj ponownie.");
-          return;
-        }
-
+        // Success - do a full page reload to let middleware handle the redirect
         const safeRedirect = getSafeRedirectPath(redirectTo);
         window.location.href = safeRedirect ?? "/dashboard";
+        // Don't set isSubmitting to false - we're redirecting
       } catch (error) {
         setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
 
@@ -218,11 +162,10 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
           // eslint-disable-next-line no-console
           console.error("Nieoczekiwany błąd logowania:", error);
         }
-      } finally {
         setIsSubmitting(false);
       }
     },
-    [isBusy, isSupabaseReady, redirectTo, values]
+    [isSubmitting, redirectTo, values]
   );
 
   return (
@@ -230,19 +173,9 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
       className="space-y-6"
       onSubmit={handleSubmit}
       noValidate
-      aria-busy={isBusy}
+      aria-busy={isSubmitting}
       aria-describedby={formError ? formErrorId : undefined}
     >
-      {isCheckingSession ? (
-        <div
-          className="flex items-center gap-3 rounded-md border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground"
-          aria-live="polite"
-        >
-          <Spinner size="sm" />
-          <span>Sprawdzanie sesji...</span>
-        </div>
-      ) : null}
-
       {formError ? (
         <div
           className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
@@ -270,7 +203,7 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
           onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
           aria-invalid={Boolean(showEmailError)}
           aria-describedby={showEmailError ? emailErrorId : undefined}
-          disabled={isBusy || !isSupabaseReady}
+          disabled={isSubmitting}
         />
         {showEmailError ? (
           <p className="text-sm text-destructive" id={emailErrorId} role="alert">
@@ -295,7 +228,7 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
           onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
           aria-invalid={Boolean(showPasswordError)}
           aria-describedby={showPasswordError ? passwordErrorId : undefined}
-          disabled={isBusy || !isSupabaseReady}
+          disabled={isSubmitting}
         />
         {showPasswordError ? (
           <p className="text-sm text-destructive" id={passwordErrorId} role="alert">
@@ -304,7 +237,7 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
         ) : null}
       </div>
 
-      <Button type="submit" className="w-full" disabled={!canSubmit || isBusy || !isSupabaseReady}>
+      <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
         {isSubmitting ? "Logowanie..." : "Zaloguj się"}
       </Button>
 

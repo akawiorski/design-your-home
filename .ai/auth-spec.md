@@ -1,4 +1,5 @@
 # Specyfikacja Techniczna: Moduł Autentykacji
+
 ## Design Your Home - System Rejestracji, Logowania i Odzyskiwania Hasła
 
 **Wersja:** 1.0  
@@ -10,10 +11,13 @@
 ## 1. WPROWADZENIE
 
 ### 1.1 Cel dokumentu
+
 Dokument definiuje architekturę techniczną modułu autentykacji użytkowników w aplikacji Design Your Home, obejmującego funkcjonalności: rejestracji, logowania, wylogowywania oraz odzyskiwania hasła. Specyfikacja zapewnia zgodność z wymaganiami US-007 z dokumentu PRD oraz integralność z istniejącą architekturą aplikacji.
 
 ### 1.2 Zakres funkcjonalny
+
 Moduł autentykacji obejmuje:
+
 - **Rejestrację** nowych użytkowników (email + hasło + potwierdzenie hasła)
 - **Logowanie** istniejących użytkowników (email + hasło)
 - **Wylogowywanie** z aktywnej sesji
@@ -22,6 +26,7 @@ Moduł autentykacji obejmuje:
 - **Zarządzanie sesją** z wykorzystaniem Supabase Auth
 
 ### 1.3 Założenia projektowe
+
 - Brak zewnętrznych providerów OAuth (Google, GitHub) w MVP
 - Wszystkie funkcje generowania inspiracji wymagają autentykacji
 - Wykorzystanie Supabase Auth jako backend autentykacji
@@ -38,6 +43,7 @@ Moduł autentykacji obejmuje:
 #### 2.1.1 Strefa publiczna (bez wymaganej autentykacji)
 
 **A. Strona główna (`/`)**
+
 - **Plik:** `src/pages/index.astro` (istniejący)
 - **Status:** Rozszerzenie istniejącej funkcjonalności
 - **Opis:** Strona startowa z komponentem `AuthRedirector` automatycznie przekierowującym użytkownika
@@ -51,6 +57,7 @@ Moduł autentykacji obejmuje:
   - `Spinner` - wskaźnik ładowania podczas sprawdzania sesji
 
 **B. Strona logowania (`/login`)**
+
 - **Plik:** `src/pages/login.astro` (istniejący)
 - **Status:** Rozszerzenie istniejącej funkcjonalności
 - **Opis:** Dedykowana strona do logowania użytkowników
@@ -70,6 +77,7 @@ Moduł autentykacji obejmuje:
   - Dodanie linku do `/forgot-password`
 
 **C. Strona rejestracji (`/register`)**
+
 - **Plik:** `src/pages/register.astro` (nowy)
 - **Status:** Do utworzenia
 - **Opis:** Dedykowana strona do rejestracji nowych użytkowników
@@ -85,6 +93,7 @@ Moduł autentykacji obejmuje:
 - **Layout:** `Layout.astro` (bez nagłówka nawigacyjnego)
 
 **D. Strona odzyskiwania hasła (`/forgot-password`)**
+
 - **Plik:** `src/pages/forgot-password.astro` (nowy)
 - **Status:** Do utworzenia
 - **Opis:** Strona inicjująca proces odzyskiwania hasła
@@ -100,6 +109,7 @@ Moduł autentykacji obejmuje:
 - **Layout:** `Layout.astro` (bez nagłówka nawigacyjnego)
 
 **E. Strona resetowania hasła (`/reset-password`)**
+
 - **Plik:** `src/pages/reset-password.astro` (nowy)
 - **Status:** Do utworzenia
 - **Opis:** Strona do ustawienia nowego hasła po kliknięciu w link z emaila
@@ -117,6 +127,7 @@ Moduł autentykacji obejmuje:
 #### 2.1.2 Strefa prywatna (wymaga autentykacji)
 
 **A. Dashboard (`/dashboard`)**
+
 - **Plik:** `src/pages/dashboard/index.astro` (istniejący)
 - **Status:** Rozszerzenie o kontrolę dostępu
 - **Modyfikacje:**
@@ -125,6 +136,7 @@ Moduł autentykacji obejmuje:
 - **Layout:** `Layout.astro` z nagłówkiem zawierającym przycisk wylogowania
 
 **B. Strona pokoju (`/rooms/[roomId]`)**
+
 - **Plik:** `src/pages/rooms/[roomId].astro` (istniejący)
 - **Status:** Rozszerzenie o kontrolę dostępu
 - **Modyfikacje:**
@@ -137,6 +149,7 @@ Moduł autentykacji obejmuje:
 #### 2.2.1 Istniejące komponenty do modyfikacji
 
 **A. LoginForm (`src/components/auth/LoginForm.tsx`)**
+
 - **Status:** Istniejący, wymaga rozszerzenia
 - **Odpowiedzialności:**
   - Obsługa formularza logowania (email + hasło)
@@ -168,6 +181,7 @@ Moduł autentykacji obejmuje:
   - Dodanie linków do `/register` i `/forgot-password` (przekazanych jako props z Astro)
 
 **B. AuthRedirector (`src/components/auth/AuthRedirector.tsx`)**
+
 - **Status:** Istniejący, bez zmian
 - **Odpowiedzialności:**
   - Sprawdzanie sesji przy załadowaniu strony głównej
@@ -182,6 +196,7 @@ Moduł autentykacji obejmuje:
 #### 2.2.2 Nowe komponenty do utworzenia
 
 **A. RegisterForm (`src/components/auth/RegisterForm.tsx`)**
+
 - **Plik:** Nowy komponent
 - **Odpowiedzialności:**
   - Obsługa formularza rejestracji
@@ -215,6 +230,7 @@ Moduł autentykacji obejmuje:
   - NIE automatyczne logowanie (wymaga potwierdzenia emaila)
 
 **B. ForgotPasswordForm (`src/components/auth/ForgotPasswordForm.tsx`)**
+
 - **Plik:** Nowy komponent
 - **Odpowiedzialności:**
   - Obsługa formularza z jednym polem (email)
@@ -239,6 +255,7 @@ Moduł autentykacji obejmuje:
   - Nie ujawniamy czy email istnieje w bazie (zawsze ten sam komunikat sukcesu)
 
 **C. ResetPasswordForm (`src/components/auth/ResetPasswordForm.tsx`)**
+
 - **Plik:** Nowy komponent
 - **Odpowiedzialności:**
   - Obsługa formularza z nowym hasłem i potwierdzeniem
@@ -266,6 +283,7 @@ Moduł autentykacji obejmuje:
   - Po sukcesie → przekierowanie do `/login` z komunikatem "Hasło zostało zmienione. Możesz się teraz zalogować."
 
 **D. UserMenu (`src/components/layout/UserMenu.tsx`)**
+
 - **Plik:** Nowy komponent
 - **Odpowiedzialności:**
   - Wyświetlanie przycisku wylogowania w nagłówku
@@ -284,39 +302,43 @@ Moduł autentykacji obejmuje:
 ### 2.3 Modyfikacje layoutu
 
 **A. Layout.astro (`src/layouts/Layout.astro`)**
+
 - **Status:** Istniejący, wymaga rozszerzenia
 - **Modyfikacje:**
   - Dodanie warunkowego renderowania nagłówka z `UserMenu`
   - Sprawdzenie sesji server-side w Astro frontmatter
   - Przekazanie informacji o sesji do komponentu nagłówka
 - **Struktura:**
+
   ```astro
   ---
   const { title } = Astro.props;
   const supabase = Astro.locals.supabase;
-  
+
   // Server-side session check
   let session = null;
   if (supabase) {
     const { data } = await supabase.auth.getSession();
     session = data.session;
   }
-  
-  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(Astro.url.pathname);
+
+  const isAuthPage = ["/login", "/register", "/forgot-password", "/reset-password"].includes(Astro.url.pathname);
   const showHeader = session && !isAuthPage;
   ---
-  
+
   <html>
-    <head>...</head>
+    <head></head>...
     <body>
-      {showHeader && (
-        <header>
-          <nav>
-            <a href="/dashboard">Dashboard</a>
-            <UserMenu client:load userEmail={session.user.email} />
-          </nav>
-        </header>
-      )}
+      {
+        showHeader && (
+          <header>
+            <nav>
+              <a href="/dashboard">Dashboard</a>
+              <UserMenu client:load userEmail={session.user.email} />
+            </nav>
+          </header>
+        )
+      }
       <div class="container">
         <slot />
       </div>
@@ -331,20 +353,22 @@ Moduł autentykacji obejmuje:
 
 **Reguły walidacji:**
 
-| Pole | Typ | Required | Min. długość | Maksymalna | Format | Komunikat błędu |
-|------|-----|----------|--------------|------------|--------|-----------------|
-| Email | text/email | Tak | - | 255 | email pattern | "Podaj poprawny adres email." |
-| Hasło (login) | password | Tak | 4 | - | - | "Hasło powinno mieć co najmniej 4 znaków." |
-| Hasło (rejestracja) | password | Tak | 4 | - | - | "Hasło powinno mieć co najmniej 4 znaków." |
-| Potwierdzenie hasła | password | Tak | - | - | match | "Hasła nie są identyczne." |
+| Pole                | Typ        | Required | Min. długość | Maksymalna | Format        | Komunikat błędu                            |
+| ------------------- | ---------- | -------- | ------------ | ---------- | ------------- | ------------------------------------------ |
+| Email               | text/email | Tak      | -            | 255        | email pattern | "Podaj poprawny adres email."              |
+| Hasło (login)       | password   | Tak      | 4            | -          | -             | "Hasło powinno mieć co najmniej 4 znaków." |
+| Hasło (rejestracja) | password   | Tak      | 4            | -          | -             | "Hasło powinno mieć co najmniej 4 znaków." |
+| Potwierdzenie hasła | password   | Tak      | -            | -          | match         | "Hasła nie są identyczne."                 |
 
 **Wzorce walidacji:**
+
 ```typescript
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 4;
 ```
 
 **Strategia wyświetlania błędów:**
+
 - Błędy pól wyświetlane po:
   - Opuszczeniu pola (onBlur) - touched state
   - Próbie submit (hasSubmitted = true)
@@ -355,28 +379,29 @@ const PASSWORD_MIN_LENGTH = 4;
 
 **Mapowanie błędów Supabase:**
 
-| Kod błędu Supabase | Komunikat dla użytkownika |
-|-------------------|---------------------------|
-| `Invalid login credentials` | "Nieprawidłowy email lub hasło." |
-| `Email not confirmed` | "Sprawdź skrzynkę i potwierdź adres email." |
-| `User already registered` | "Konto z tym adresem już istnieje." |
-| `Rate limit exceeded` | "Zbyt wiele prób. Spróbuj ponownie za chwilę." |
-| `Invalid or expired token` | "Link wygasł lub jest nieprawidłowy." |
-| Domyślny | "Wystąpił błąd. Spróbuj ponownie." |
+| Kod błędu Supabase          | Komunikat dla użytkownika                      |
+| --------------------------- | ---------------------------------------------- |
+| `Invalid login credentials` | "Nieprawidłowy email lub hasło."               |
+| `Email not confirmed`       | "Sprawdź skrzynkę i potwierdź adres email."    |
+| `User already registered`   | "Konto z tym adresem już istnieje."            |
+| `Rate limit exceeded`       | "Zbyt wiele prób. Spróbuj ponownie za chwilę." |
+| `Invalid or expired token`  | "Link wygasł lub jest nieprawidłowy."          |
+| Domyślny                    | "Wystąpił błąd. Spróbuj ponownie."             |
 
 #### 2.4.3 Komunikaty sukcesu
 
-| Akcja | Komunikat | Lokalizacja |
-|-------|-----------|-------------|
-| Rejestracja | "Konto utworzone! Sprawdź swoją skrzynkę email i kliknij w link aktywacyjny." | RegisterForm (inline) |
-| Wysłanie linku resetującego | "Jeśli konto z tym adresem istnieje, wyślemy na nie link do resetowania hasła." | ForgotPasswordForm (inline) |
-| Reset hasła | "Hasło zostało zmienione. Możesz się teraz zalogować." | Toast po przekierowaniu do /login |
-| Logowanie | Brak (automatyczne przekierowanie) | - |
-| Wylogowanie | Brak (automatyczne przekierowanie) | - |
+| Akcja                       | Komunikat                                                                       | Lokalizacja                       |
+| --------------------------- | ------------------------------------------------------------------------------- | --------------------------------- |
+| Rejestracja                 | "Konto utworzone! Sprawdź swoją skrzynkę email i kliknij w link aktywacyjny."   | RegisterForm (inline)             |
+| Wysłanie linku resetującego | "Jeśli konto z tym adresem istnieje, wyślemy na nie link do resetowania hasła." | ForgotPasswordForm (inline)       |
+| Reset hasła                 | "Hasło zostało zmienione. Możesz się teraz zalogować."                          | Toast po przekierowaniu do /login |
+| Logowanie                   | Brak (automatyczne przekierowanie)                                              | -                                 |
+| Wylogowanie                 | Brak (automatyczne przekierowanie)                                              | -                                 |
 
 ### 2.5 Accessibility (A11y)
 
 **Wymagania dostępności:**
+
 - Wszystkie pola formularzy z `<label>` powiązanymi przez `htmlFor`
 - Błędy walidacji powiązane z polami przez `aria-describedby`
 - `aria-invalid="true"` dla pól z błędami
@@ -397,14 +422,14 @@ Moduł autentykacji **NIE wymaga** tworzenia dedykowanych endpointów API w apli
 
 **Supabase Auth SDK - metody wykorzystywane:**
 
-| Metoda | Cel | Wywołanie z |
-|--------|-----|-------------|
-| `supabase.auth.signUp()` | Rejestracja użytkownika | RegisterForm.tsx |
-| `supabase.auth.signInWithPassword()` | Logowanie użytkownika | LoginForm.tsx |
-| `supabase.auth.signOut()` | Wylogowanie użytkownika | UserMenu.tsx |
-| `supabase.auth.resetPasswordForEmail()` | Inicjacja resetowania hasła | ForgotPasswordForm.tsx |
-| `supabase.auth.updateUser()` | Ustawienie nowego hasła | ResetPasswordForm.tsx |
-| `supabase.auth.getSession()` | Pobranie aktywnej sesji | AuthRedirector, LoginForm, server-side |
+| Metoda                                  | Cel                         | Wywołanie z                            |
+| --------------------------------------- | --------------------------- | -------------------------------------- |
+| `supabase.auth.signUp()`                | Rejestracja użytkownika     | RegisterForm.tsx                       |
+| `supabase.auth.signInWithPassword()`    | Logowanie użytkownika       | LoginForm.tsx                          |
+| `supabase.auth.signOut()`               | Wylogowanie użytkownika     | UserMenu.tsx                           |
+| `supabase.auth.resetPasswordForEmail()` | Inicjacja resetowania hasła | ForgotPasswordForm.tsx                 |
+| `supabase.auth.updateUser()`            | Ustawienie nowego hasła     | ResetPasswordForm.tsx                  |
+| `supabase.auth.getSession()`            | Pobranie aktywnej sesji     | AuthRedirector, LoginForm, server-side |
 
 ### 3.2 Middleware Astro
 
@@ -413,11 +438,13 @@ Moduł autentykacji **NIE wymaga** tworzenia dedykowanych endpointów API w apli
 **Status:** Istniejący, wymaga rozszerzenia
 
 **Aktualna funkcjonalność:**
+
 - Udostępnia klienty Supabase w `context.locals`
 - `context.locals.supabase` - klient z anon key
 - `context.locals.supabaseAdmin` - klient z service role key
 
 **Rozszerzenia:**
+
 - Dodanie sprawdzania sesji server-side
 - Udostępnienie informacji o sesji w `context.locals.session`
 - Przekierowanie do `/login` dla chronionych tras bez sesji
@@ -432,7 +459,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Existing: Provide Supabase clients
   context.locals.supabase = supabaseClient;
   context.locals.supabaseAdmin = supabaseServiceClient ?? supabaseClient;
-  
+
   // New: Check session server-side
   let session = null;
   if (supabaseClient) {
@@ -443,29 +470,29 @@ export const onRequest = defineMiddleware(async (context, next) => {
       console.error("Error getting session in middleware:", error);
     }
   }
-  
+
   context.locals.session = session;
-  
+
   // Protected routes - require authentication
-  const protectedRoutes = ['/dashboard', '/rooms'];
+  const protectedRoutes = ["/dashboard", "/rooms"];
   const pathname = context.url.pathname;
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-  
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+
   // Auth pages - redirect if already logged in
-  const authPages = ['/login', '/register', '/forgot-password'];
+  const authPages = ["/login", "/register", "/forgot-password"];
   const isAuthPage = authPages.includes(pathname);
-  
+
   if (isProtectedRoute && !session) {
     // Redirect to login with returnTo parameter
     const redirectTo = encodeURIComponent(pathname + context.url.search);
     return context.redirect(`/login?redirectTo=${redirectTo}`);
   }
-  
+
   if (isAuthPage && session) {
     // Redirect to dashboard if already authenticated
-    return context.redirect('/dashboard');
+    return context.redirect("/dashboard");
   }
-  
+
   return next();
 });
 ```
@@ -505,15 +532,12 @@ const userId = DEFAULT_USER_ID;
 const userId = locals.session?.user?.id;
 
 if (!userId) {
-  return errorResponse(
-    401, 
-    "AUTHENTICATION_REQUIRED", 
-    "Authentication is required to access this resource."
-  );
+  return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");
 }
 ```
 
 **Endpointy do modyfikacji:**
+
 - `src/pages/api/rooms/index.ts` - GET, POST
 - `src/pages/api/rooms/[roomId]/index.ts` - GET
 - `src/pages/api/rooms/[roomId]/photos/index.ts` - GET, POST
@@ -551,26 +575,30 @@ export const loginSchema = z.object({
   password: z.string().min(4, "Hasło powinno mieć co najmniej 4 znaków."),
 });
 
-export const registerSchema = z.object({
-  email: z.string().email("Podaj poprawny adres email."),
-  password: z.string().min(4, "Hasło powinno mieć co najmniej 4 znaków."),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Hasła nie są identyczne.",
-  path: ["confirmPassword"],
-});
+export const registerSchema = z
+  .object({
+    email: z.string().email("Podaj poprawny adres email."),
+    password: z.string().min(4, "Hasło powinno mieć co najmniej 4 znaków."),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Hasła nie są identyczne.",
+    path: ["confirmPassword"],
+  });
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email("Podaj poprawny adres email."),
 });
 
-export const resetPasswordSchema = z.object({
-  password: z.string().min(4, "Hasło powinno mieć co najmniej 4 znaków."),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Hasła nie są identyczne.",
-  path: ["confirmPassword"],
-});
+export const resetPasswordSchema = z
+  .object({
+    password: z.string().min(4, "Hasło powinno mieć co najmniej 4 znaków."),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Hasła nie są identyczne.",
+    path: ["confirmPassword"],
+  });
 ```
 
 **Wykorzystanie w komponentach React:**
@@ -609,16 +637,15 @@ try {
     email: values.email,
     password: values.password,
   });
-  
+
   if (error) {
     // Map Supabase error to user-friendly message
     setFormError(mapAuthErrorMessage(error.message));
     return;
   }
-  
+
   // Success - redirect
   window.location.href = redirectTo ?? "/dashboard";
-  
 } catch (error) {
   // Network or unexpected errors
   setFormError("Wystąpił błąd połączenia. Sprawdź połączenie internetowe.");
@@ -655,10 +682,12 @@ try {
    - Redirect URL: `https://your-domain.com/reset-password`
 
 **Konfiguracja Redirect URLs (Supabase Dashboard):**
+
 - Dodanie `https://your-domain.com/reset-password` do Redirect URLs
 - Dodanie `http://localhost:4321/reset-password` dla development
 
 **Token TTL:**
+
 - Session token: 1 godzina (domyślnie)
 - Refresh token: 30 dni (domyślnie)
 - Password reset token: 1 godzina
@@ -788,11 +817,13 @@ try {
 **Storage:** Supabase SDK automatycznie zarządza przechowywaniem sesji
 
 **Lokalizacja:**
+
 - `localStorage` - domyślnie (persist between tabs)
 - Klucz: `supabase.auth.token`
 - Wartość: JSON z `access_token`, `refresh_token`, `expires_at`, `user`
 
 **Lifecycle:**
+
 - **Access token TTL:** 1 godzina
 - **Refresh token TTL:** 30 dni
 - **Auto-refresh:** Supabase SDK automatycznie odświeża token przed wygaśnięciem
@@ -815,6 +846,7 @@ const session = data.session;
 ```
 
 **Session refresh handling:**
+
 - Supabase SDK automatycznie odświeża token w tle
 - Jeśli refresh token wygasł → sesja staje się null
 - Middleware przekierowuje do `/login`
@@ -824,10 +856,10 @@ const session = data.session;
 ```typescript
 // Nasłuchiwanie na zmiany sesji (optional dla zaawansowanych przypadków)
 supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_OUT') {
+  if (event === "SIGNED_OUT") {
     // Clear local state
   }
-  if (event === 'SIGNED_IN') {
+  if (event === "SIGNED_IN") {
     // Update local state
   }
 });
@@ -838,24 +870,29 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 #### 4.4.1 Ochrona przed atakami
 
 **Cross-Site Scripting (XSS):**
+
 - React automatycznie escapuje dane wejściowe
 - Nie używamy `dangerouslySetInnerHTML` w formularzach
 - Sanityzacja parametrów URL (`redirectTo`)
 
 **Cross-Site Request Forgery (CSRF):**
+
 - Supabase Auth używa JWT bez cookies (immune to CSRF)
 - Same-Site policy dla ewentualnych cookies
 
 **SQL Injection:**
+
 - Brak bezpośrednich SQL queries w auth flow
 - Supabase API używa parametryzowanych zapytań
 
 **Brute Force:**
+
 - Supabase ma wbudowane rate limiting
 - Limit: ~10 nieudanych prób logowania / godzinę / IP
 - Komunikat: "Zbyt wiele prób. Spróbuj ponownie za chwilę."
 
 **Password Security:**
+
 - Minimalna długość: 4 znaki
 - Hashowanie: bcrypt (Supabase default)
 - Brak przechowywania hasła w plain text (nigdy)
@@ -867,20 +904,21 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 ```typescript
 const getSafeRedirectPath = (value?: string | null): string | null => {
   if (!value) return null;
-  
+
   const trimmed = value.trim();
-  
+
   // Must start with /
   if (!trimmed.startsWith("/")) return null;
-  
+
   // Prevent protocol-relative URLs (//evil.com)
   if (trimmed.startsWith("//") || trimmed.includes("://")) return null;
-  
+
   return trimmed;
 };
 ```
 
 **Wykorzystanie:**
+
 - W `LoginForm` - po sukcesie logowania
 - W `AuthRedirector` - przy przekierowaniach
 - W middleware - przy przekierowaniach do `/login`
@@ -890,31 +928,37 @@ const getSafeRedirectPath = (value?: string | null): string | null => {
 **Wymaganie:** Potwierdzenie emaila przed pierwszym logowaniem
 
 **Konfiguracja w Supabase Dashboard:**
+
 - Authentication > Settings > Enable email confirmations: **ON**
 
 **Obsługa w aplikacji:**
+
 - Użytkownik po rejestracji nie może się zalogować bez potwierdzenia
 - Błąd Supabase: "Email not confirmed"
 - Komunikat: "Sprawdź skrzynkę i potwierdź adres email."
 
 **Re-sending confirmation email (optional future enhancement):**
+
 - Przycisk "Wyślij ponownie email" na `/login`
 - Wywołanie `supabase.auth.resend({ type: 'signup', email })`
 
 #### 4.4.4 Token security
 
 **Access Token (JWT):**
+
 - Przechowywany w localStorage (XSS risk mitigation: CSP headers)
 - Krótki TTL (1h) minimalizuje ryzyko przejęcia
 - Zawiera: user id, email, role, exp
 
 **Refresh Token:**
+
 - Przechowywany w localStorage
 - Długi TTL (30 dni)
 - Używany tylko do odświeżania access token
 - Rotacja przy każdym refresh (Supabase default)
 
 **Password Reset Token:**
+
 - Jednorazowy, krótki TTL (1h)
 - Przesyłany w URL hash (nie w query - bezpieczniejsze)
 - Invalidowany po użyciu
@@ -1019,19 +1063,19 @@ declare namespace App {
 
 ```typescript
 {
-  access_token: string;        // JWT token
-  refresh_token: string;       // Refresh token
-  expires_in: number;          // TTL w sekundach
-  expires_at: number;          // Unix timestamp
+  access_token: string; // JWT token
+  refresh_token: string; // Refresh token
+  expires_in: number; // TTL w sekundach
+  expires_at: number; // Unix timestamp
   token_type: "bearer";
   user: {
-    id: string;                // UUID użytkownika
-    aud: string;               // Audience (authenticated)
-    role: string;              // Rola (authenticated)
-    email: string;             // Email użytkownika
+    id: string; // UUID użytkownika
+    aud: string; // Audience (authenticated)
+    role: string; // Rola (authenticated)
+    email: string; // Email użytkownika
     email_confirmed_at: string; // ISO timestamp potwierdzenia
-    created_at: string;        // ISO timestamp utworzenia
-    updated_at: string;        // ISO timestamp aktualizacji
+    created_at: string; // ISO timestamp utworzenia
+    updated_at: string; // ISO timestamp aktualizacji
   }
 }
 ```
@@ -1040,15 +1084,15 @@ declare namespace App {
 
 ```typescript
 {
-  id: string;                  // UUID
-  aud: string;                 // Audience
-  role: string;                // Role
-  email: string;               // Email
-  email_confirmed_at: string;  // Confirmation timestamp
-  created_at: string;          // Creation timestamp
-  updated_at: string;          // Update timestamp
-  app_metadata: object;        // Application metadata
-  user_metadata: object;       // User metadata (custom fields)
+  id: string; // UUID
+  aud: string; // Audience
+  role: string; // Role
+  email: string; // Email
+  email_confirmed_at: string; // Confirmation timestamp
+  created_at: string; // Creation timestamp
+  updated_at: string; // Update timestamp
+  app_metadata: object; // Application metadata
+  user_metadata: object; // User metadata (custom fields)
 }
 ```
 
@@ -1061,6 +1105,7 @@ declare namespace App {
 **Status:** Nie wymagana
 
 **Uzasadnienie:**
+
 - Supabase Auth zarządza tabelą `auth.users` automatycznie
 - Tabela `rooms` już ma kolumnę `user_id uuid` z foreign key do `auth.users(id)`
 - RLS policies mogą być włączone, ale w MVP API używa service_role key z własną autoryzacją
@@ -1099,18 +1144,21 @@ CREATE POLICY "Users can delete own rooms"
 5. Usuń import `DEFAULT_USER_ID` ze wszystkich plików API
 
 **Weryfikacja:**
+
 - Uruchom testy API (istniejące testy wymagają aktualizacji - mock sesji)
 - Przetestuj ręcznie flow logowania i dostęp do API
 
 ### 6.3 Aktualizacja testów
 
 **Pliki do modyfikacji:**
+
 - `src/components/auth/LoginForm.test.tsx` (istniejący, jeśli istnieje)
 - `src/components/auth/AuthRedirector.test.tsx` (istniejący)
 - `src/pages/api/rooms/[roomId]/index.test.ts` (istniejący)
 - `src/pages/api/rooms/[roomId]/photos/index.test.ts` (istniejący)
 
 **Nowe testy do utworzenia:**
+
 - `src/components/auth/RegisterForm.test.tsx`
 - `src/components/auth/ForgotPasswordForm.test.tsx`
 - `src/components/auth/ResetPasswordForm.test.tsx`
@@ -1122,7 +1170,7 @@ CREATE POLICY "Users can delete own rooms"
 // Mock Astro locals with session
 const mockLocals = {
   session: {
-    user: { id: "test-user-id" }
+    user: { id: "test-user-id" },
   },
   supabase: mockSupabaseClient,
   supabaseAdmin: mockSupabaseAdminClient,
@@ -1136,125 +1184,156 @@ const mockLocals = {
 ### 7.1 Rejestracja nowego użytkownika
 
 **Krok 1:** Użytkownik otwiera `/register`
+
 - **Frontend:** Renderuje `RegisterForm`
 - **Warunek:** Jeśli zalogowany → przekierowanie do `/dashboard` (middleware)
 
 **Krok 2:** Użytkownik wypełnia formularz
+
 - Email: user@example.com
 - Hasło: Pass1234
 - Potwierdzenie: Pass1234
 
 **Krok 3:** Użytkownik klika "Zarejestruj się"
+
 - **Walidacja client-side:** Sprawdzenie formatu email, długości hasła, zgodności haseł
 - **Jeśli błąd:** Wyświetlenie komunikatów pod polami
 
 **Krok 4:** Wysłanie request do Supabase
+
 - **Frontend:** `supabase.auth.signUp({ email, password })`
 - **Supabase:** Tworzy użytkownika, wysyła email
 
 **Krok 5:** Sukces rejestracji
+
 - **Frontend:** Wyświetla komunikat "Sprawdź email i kliknij w link"
 - **UI:** Przycisk "Przejdź do logowania"
 
 **Krok 6:** Użytkownik potwierdza email
+
 - **Klik w link:** Przekierowanie do `/login`
 - **Supabase:** Ustawia `email_confirmed_at`
 
 **Krok 7:** Użytkownik może się zalogować
+
 - Przejście do scenariusza logowania
 
 ### 7.2 Logowanie użytkownika
 
 **Krok 1:** Użytkownik otwiera `/login`
+
 - **Jeśli już zalogowany:** Middleware przekierowuje do `/dashboard`
 
 **Krok 2:** Użytkownik wypełnia formularz
+
 - Email: user@example.com
 - Hasło: Pass1234
 
 **Krok 3:** Użytkownik klika "Zaloguj się"
+
 - **Walidacja client-side:** Format email, długość hasła
 
 **Krok 4:** Wysłanie request do Supabase
+
 - **Frontend:** `supabase.auth.signInWithPassword({ email, password })`
 
 **Krok 5a:** Sukces logowania
+
 - **Supabase:** Zwraca sesję i user object
 - **Frontend:** Zapisuje sesję (automatycznie przez SDK)
 - **Przekierowanie:** Do `redirectTo` lub `/dashboard`
 
 **Krok 5b:** Błąd logowania - niepotwierdzone konto
+
 - **Supabase:** Error "Email not confirmed"
 - **Frontend:** Wyświetla "Sprawdź skrzynkę i potwierdź adres email."
 
 **Krok 5c:** Błąd logowania - złe credentials
+
 - **Supabase:** Error "Invalid login credentials"
 - **Frontend:** Wyświetla "Nieprawidłowy email lub hasło."
 
 **Krok 6:** Po przekierowaniu do `/dashboard`
+
 - **Middleware:** Sprawdza `locals.session` → istnieje
 - **Frontend:** Renderuje dashboard z `UserMenu`
 
 ### 7.3 Wylogowanie użytkownika
 
 **Krok 1:** Użytkownik jest na `/dashboard`
+
 - **UI:** Widoczny przycisk "Wyloguj" w prawym górnym rogu
 
 **Krok 2:** Użytkownik klika "Wyloguj"
+
 - **Frontend:** `UserMenu` wywołuje `supabase.auth.signOut()`
 
 **Krok 3:** Supabase usuwa sesję
+
 - **Supabase:** Invaliduje refresh token
 - **Frontend:** Usuwa sesję z localStorage (automatycznie przez SDK)
 
 **Krok 4:** Przekierowanie do `/login`
+
 - **Frontend:** `window.location.href = "/login"`
 
 **Krok 5:** Kolejne requesty
+
 - **Middleware:** `locals.session` = null
 - **Dostęp do `/dashboard`:** Przekierowanie do `/login`
 
 ### 7.4 Odzyskiwanie hasła
 
 **Krok 1:** Użytkownik otwiera `/login`
+
 - **UI:** Link "Zapomniałeś hasła?"
 
 **Krok 2:** Użytkownik klika link
+
 - **Przekierowanie:** Do `/forgot-password`
 
 **Krok 3:** Użytkownik podaje email
+
 - Email: user@example.com
 - Klika "Wyślij link resetujący"
 
 **Krok 4:** Wysłanie request do Supabase
+
 - **Frontend:** `supabase.auth.resetPasswordForEmail(email, { redirectTo: '/reset-password' })`
 - **Supabase:** Generuje token, wysyła email
 
 **Krok 5:** Komunikat sukcesu
+
 - **Frontend:** "Jeśli konto istnieje, wysłaliśmy link"
 - **Uwaga:** Ten sam komunikat niezależnie czy email istnieje (bezpieczeństwo)
 
 **Krok 6:** Użytkownik otwiera email
+
 - **Klik w link:** `https://domain.com/reset-password#access_token=...`
 
 **Krok 7:** Strona `/reset-password`
+
 - **Frontend:** `ResetPasswordForm` automatycznie wykrywa token (Supabase SDK parsuje hash)
 - **UI:** Formularz z polami "Nowe hasło" i "Potwierdzenie"
 
 **Krok 8:** Użytkownik wypełnia formularz
+
 - Nowe hasło: NewPass456
 - Potwierdzenie: NewPass456
 - Klika "Zmień hasło"
 
 **Krok 9:** Wysłanie request do Supabase
+
 - **Frontend:** `supabase.auth.updateUser({ password: newPassword })`
 - **Supabase:** Weryfikuje token, aktualizuje hasło
 
 **Krok 10:** Sukces
+
 - **Frontend:** Toast "Hasło zmienione"
 - **Przekierowanie:** Do `/login`
 
 **Krok 11:** Użytkownik loguje się nowym hasłem
+
 - Przejście do scenariusza logowania
 
 ### 7.5 Dostęp do chronionej trasy
@@ -1262,23 +1341,28 @@ const mockLocals = {
 **Scenariusz A: Użytkownik zalogowany**
 
 **Krok 1:** Użytkownik wpisuje `/rooms/abc-123` w przeglądarce
+
 - **Middleware:** Sprawdza `locals.session`
 - **Wynik:** Sesja istnieje
 
 **Krok 2:** Middleware przepuszcza request
+
 - **Strona:** Renderuje się normalnie
 - **API calls:** Używają `locals.session.user.id`
 
 **Scenariusz B: Użytkownik niezalogowany**
 
 **Krok 1:** Użytkownik wpisuje `/rooms/abc-123` w przeglądarce
+
 - **Middleware:** Sprawdza `locals.session`
 - **Wynik:** Sesja = null
 
 **Krok 2:** Middleware przekierowuje
+
 - **Target:** `/login?redirectTo=/rooms/abc-123`
 
 **Krok 3:** Użytkownik loguje się
+
 - **Po sukcesie:** `LoginForm` odczytuje `redirectTo` z query
 - **Przekierowanie:** Do `/rooms/abc-123`
 
@@ -1288,15 +1372,15 @@ const mockLocals = {
 
 ### 8.1 Kryteria akceptacji (zgodność z US-007)
 
-| Wymaganie | Status | Weryfikacja |
-|-----------|--------|-------------|
-| Logowanie i rejestracja na dedykowanych stronach | ✅ | Strony `/login` i `/register` istnieją |
-| Logowanie wymaga email + hasło | ✅ | `LoginForm` ma pola email i password |
-| Rejestracja wymaga email + hasło + potwierdzenie | ✅ | `RegisterForm` ma wszystkie pola |
-| Użytkownik NIE MOŻE generować bez logowania | ✅ | Middleware chroni `/rooms/*` i `/dashboard` |
-| Przycisk logowania/wylogowania w prawym górnym rogu | ✅ | `UserMenu` w `Layout.astro` |
-| Brak zewnętrznych serwisów logowania | ✅ | Tylko email + password |
-| Możliwość odzyskiwania hasła | ✅ | Flow `/forgot-password` → `/reset-password` |
+| Wymaganie                                           | Status | Weryfikacja                                 |
+| --------------------------------------------------- | ------ | ------------------------------------------- |
+| Logowanie i rejestracja na dedykowanych stronach    | ✅     | Strony `/login` i `/register` istnieją      |
+| Logowanie wymaga email + hasło                      | ✅     | `LoginForm` ma pola email i password        |
+| Rejestracja wymaga email + hasło + potwierdzenie    | ✅     | `RegisterForm` ma wszystkie pola            |
+| Użytkownik NIE MOŻE generować bez logowania         | ✅     | Middleware chroni `/rooms/*` i `/dashboard` |
+| Przycisk logowania/wylogowania w prawym górnym rogu | ✅     | `UserMenu` w `Layout.astro`                 |
+| Brak zewnętrznych serwisów logowania                | ✅     | Tylko email + password                      |
+| Możliwość odzyskiwania hasła                        | ✅     | Flow `/forgot-password` → `/reset-password` |
 
 ### 8.2 Metryki techniczne
 
@@ -1338,32 +1422,34 @@ const mockLocals = {
 
 ### 9.1 Zależności zewnętrzne
 
-| Zależność | Wersja | Krytyczność | Opis |
-|-----------|--------|-------------|------|
-| Supabase Auth | Latest | Krytyczna | Backend autentykacji |
-| @supabase/supabase-js | ^2.x | Krytyczna | SDK klienta |
-| Astro | 5.x | Krytyczna | Framework aplikacji |
-| React | 19.x | Krytyczna | Komponenty UI |
-| Zod | Latest | Średnia | Walidacja schematów |
+| Zależność             | Wersja | Krytyczność | Opis                 |
+| --------------------- | ------ | ----------- | -------------------- |
+| Supabase Auth         | Latest | Krytyczna   | Backend autentykacji |
+| @supabase/supabase-js | ^2.x   | Krytyczna   | SDK klienta          |
+| Astro                 | 5.x    | Krytyczna   | Framework aplikacji  |
+| React                 | 19.x   | Krytyczna   | Komponenty UI        |
+| Zod                   | Latest | Średnia     | Walidacja schematów  |
 
 ### 9.2 Potencjalne ryzyka
 
-| Ryzyko | Prawdopodobieństwo | Wpływ | Mitygacja |
-|--------|-------------------|-------|-----------|
-| Awaria Supabase Auth | Niskie | Wysoki | Graceful degradation, komunikat o niedostępności |
-| Rate limiting Supabase | Średnie | Średni | Komunikat o zbyt wielu próbach, retry logic |
-| Email nie dostarczony | Średnie | Średni | Opcja "Wyślij ponownie", link help |
-| Token wygasł | Wysokie | Niski | Jasny komunikat, łatwy retry flow |
-| XSS przez parametry URL | Niskie | Wysoki | Sanityzacja `redirectTo`, CSP headers |
+| Ryzyko                  | Prawdopodobieństwo | Wpływ  | Mitygacja                                        |
+| ----------------------- | ------------------ | ------ | ------------------------------------------------ |
+| Awaria Supabase Auth    | Niskie             | Wysoki | Graceful degradation, komunikat o niedostępności |
+| Rate limiting Supabase  | Średnie            | Średni | Komunikat o zbyt wielu próbach, retry logic      |
+| Email nie dostarczony   | Średnie            | Średni | Opcja "Wyślij ponownie", link help               |
+| Token wygasł            | Wysokie            | Niski  | Jasny komunikat, łatwy retry flow                |
+| XSS przez parametry URL | Niskie             | Wysoki | Sanityzacja `redirectTo`, CSP headers            |
 
 ### 9.3 Wymagania infrastrukturalne
 
 **Supabase:**
+
 - Email provider skonfigurowany (SMTP lub Supabase default)
 - Redirect URLs dodane w dashboard
 - Email templates skonfigurowane
 
 **Zmienne środowiskowe:**
+
 ```
 SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -1371,6 +1457,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **DNS/Hosting:**
+
 - SSL certificate (HTTPS required dla Supabase Auth)
 - Custom domain dla email links
 
@@ -1379,6 +1466,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## 10. HARMONOGRAM IMPLEMENTACJI
 
 ### Faza 1: Przygotowanie (1 dzień)
+
 - [ ] Konfiguracja email templates w Supabase Dashboard
 - [ ] Dodanie redirect URLs w Supabase Dashboard
 - [ ] Utworzenie pliku `src/lib/validation/auth.schemas.ts`
@@ -1386,11 +1474,13 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - [ ] Rozszerzenie `src/env.d.ts` o `session` w Locals
 
 ### Faza 2: Middleware i ochrona tras (1 dzień)
+
 - [ ] Modyfikacja `src/middleware/index.ts` - session check, redirects
 - [ ] Testowanie middleware dla chronionych tras
 - [ ] Testowanie middleware dla stron auth
 
 ### Faza 3: Komponenty rejestracji (2 dni)
+
 - [ ] Utworzenie `src/components/auth/RegisterForm.tsx`
 - [ ] Utworzenie `src/pages/register.astro`
 - [ ] Implementacja walidacji i obsługi błędów
@@ -1398,6 +1488,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - [ ] Testy manualne flow rejestracji
 
 ### Faza 4: Komponenty odzyskiwania hasła (2 dni)
+
 - [ ] Utworzenie `src/components/auth/ForgotPasswordForm.tsx`
 - [ ] Utworzenie `src/pages/forgot-password.astro`
 - [ ] Utworzenie `src/components/auth/ResetPasswordForm.tsx`
@@ -1406,22 +1497,26 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - [ ] Testy manualne flow odzyskiwania hasła
 
 ### Faza 5: Wylogowanie i UserMenu (1 dzień)
+
 - [ ] Utworzenie `src/components/layout/UserMenu.tsx`
 - [ ] Modyfikacja `src/layouts/Layout.astro` - dodanie UserMenu
 - [ ] Implementacja logiki wylogowania
 - [ ] Testy jednostkowe `UserMenu.test.tsx`
 
 ### Faza 6: Modyfikacje istniejących komponentów (1 dzień)
+
 - [ ] Modyfikacja `LoginForm.tsx` - dodanie linków do `/register` i `/forgot-password`
 - [ ] Modyfikacja `login.astro` - dodanie linków
 - [ ] Aktualizacja testów `LoginForm.test.tsx`
 
 ### Faza 7: Modyfikacje API endpoints (1 dzień)
+
 - [ ] Usunięcie `DEFAULT_USER_ID` z wszystkich endpointów (lista w sekcji 3.3)
 - [ ] Aktualizacja testów API - mock sesji
 - [ ] Weryfikacja wszystkich endpointów zwracają 401 bez sesji
 
 ### Faza 8: Testy integracyjne (2 dni)
+
 - [ ] Testy E2E flow rejestracji (Playwright/Cypress)
 - [ ] Testy E2E flow logowania
 - [ ] Testy E2E flow wylogowania
@@ -1429,6 +1524,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - [ ] Testy E2E ochrony tras
 
 ### Faza 9: Finalizacja (1 dzień)
+
 - [ ] Przegląd bezpieczeństwa (checklist)
 - [ ] Przegląd accessibility (checklist)
 - [ ] Dokumentacja użytkownika (README)
@@ -1471,6 +1567,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 11.3 Struktura plików - podsumowanie
 
 **Nowe pliki:**
+
 ```
 src/
   components/
@@ -1490,6 +1587,7 @@ src/
 ```
 
 **Modyfikowane pliki:**
+
 ```
 src/
   middleware/index.ts           # Rozszerzenie - session check, redirects
@@ -1512,6 +1610,7 @@ src/
 **Następny krok:** Review zespołu → Rozpoczęcie implementacji Faza 1
 
 **Kontakt w sprawie pytań:**
+
 - Backend/Supabase: [Supabase Docs](https://supabase.com/docs/guides/auth)
 - Frontend/Astro: [Astro Docs](https://docs.astro.build)
 - Accessibility: [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/)

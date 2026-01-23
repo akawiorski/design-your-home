@@ -1,15 +1,18 @@
 # Plan implementacji widoku Rejestracja
 
 ## 1. Przegląd
+
 Widok **Rejestracja** (`/register`) umożliwia utworzenie konta użytkownika w aplikacji (email + hasło) z wykorzystaniem **Supabase Auth**. Widok należy do „strefy publicznej” (bez sesji). Po poprawnej rejestracji (i uzyskaniu sesji) użytkownik jest przekierowywany do **`/dashboard`**.
 
 Założenia kluczowe (zgodnie z PRD i UI planem):
+
 - Aplikacja wymaga konta i logowania od pierwszego kroku (brak trybu anonimowego).
 - Formularz ma walidację po stronie klienta oraz czytelną obsługę błędów zwracanych przez Supabase.
 - UI nie ujawnia wrażliwych szczegółów technicznych; komunikaty są przyjazne i zrozumiałe.
 - Zapobiegamy przypadkowemu wielokrotnemu wysyłaniu (blokada przycisku/inputs podczas requestu).
 
 ## 2. Routing widoku
+
 - Ścieżka: **`/register`**
 - Astro routing: strona **`src/pages/register.astro`**
 - Zachowanie dodatkowe:
@@ -17,6 +20,7 @@ Założenia kluczowe (zgodnie z PRD i UI planem):
   - Widok udostępnia link do `/login`.
 
 ## 3. Struktura komponentów
+
 Widok powinien używać Astro jako „shell” i React dla interaktywnego formularza.
 
 Proponowana hierarchia:
@@ -38,6 +42,7 @@ Uwaga: Jeśli w projekcie nie ma jeszcze infrastruktury toastów, warto wdroży�
 ## 4. Szczegóły komponentów
 
 ### 4.1 RegisterPage (Astro)
+
 - Opis: Strona routingu `/register`, renderuje layout i osadza React `RegisterForm`.
 - Główne elementy HTML:
   - `<main>` jako landmark
@@ -53,11 +58,13 @@ Uwaga: Jeśli w projekcie nie ma jeszcze infrastruktury toastów, warto wdroży�
   - opcjonalnie: `redirectTo` (jeśli projekt chce zachować spójność z loginem). Zgodnie z opisem widoku, minimum to redirect do `/dashboard`.
 
 Proponowany kontrakt propsów (minimalny):
+
 ```ts
 interface RegisterFormProps {}
 ```
 
 Proponowany kontrakt propsów (rozszerzalny):
+
 ```ts
 interface RegisterFormProps {
   redirectTo?: string | null;
@@ -65,6 +72,7 @@ interface RegisterFormProps {
 ```
 
 ### 4.2 AuthLayout (Astro)
+
 - Opis: Prosty layout dla strefy publicznej (login/register) – minimalny chrome, spójne style.
 - Główne elementy HTML:
   - `<main>` + `<slot />`
@@ -73,6 +81,7 @@ interface RegisterFormProps {
 - Walidacja: brak
 - Typy: brak
 - Propsy:
+
 ```ts
 interface AuthLayoutProps {
   title?: string;
@@ -80,6 +89,7 @@ interface AuthLayoutProps {
 ```
 
 ### 4.3 RegisterForm (React)
+
 - Opis: Interaktywny formularz rejestracji (email + hasło). Obsługuje walidację, stan ładowania, błędy inline oraz komunikaty globalne (toast).
 - Główne elementy HTML i dzieci:
   - `<form>`
@@ -113,6 +123,7 @@ interface AuthLayoutProps {
   - opcjonalnie `redirectTo?: string | null`
 
 Proponowany interfejs propsów (zalecany, jeśli obsługujemy redirect):
+
 ```ts
 interface RegisterFormProps {
   redirectTo?: string | null;
@@ -120,6 +131,7 @@ interface RegisterFormProps {
 ```
 
 ### 4.4 EmailField (React) – opcjonalnie jako subkomponent
+
 - Opis: Wydzielone pole email (spójne z loginem, łatwiejsze testowanie).
 - Główne elementy HTML:
   - `<label htmlFor="email">`
@@ -130,6 +142,7 @@ interface RegisterFormProps {
 - Walidacja:
   - wymagane + format email
 - Propsy:
+
 ```ts
 interface EmailFieldProps {
   value: string;
@@ -141,6 +154,7 @@ interface EmailFieldProps {
 ```
 
 ### 4.5 PasswordField (React) – opcjonalnie jako subkomponent
+
 - Opis: Pole hasła do tworzenia konta.
 - Główne elementy HTML:
   - `<label htmlFor="password">`
@@ -151,6 +165,7 @@ interface EmailFieldProps {
 - Walidacja:
   - wymagane + polityka długości
 - Propsy:
+
 ```ts
 interface PasswordFieldProps {
   value: string;
@@ -162,15 +177,18 @@ interface PasswordFieldProps {
 ```
 
 ### 4.6 Toast / Toaster (globalnie)
+
 - Opis: Mechanizm toastów do błędów ogólnych (sieć, błąd Supabase) oraz komunikatów systemowych (np. „Sprawdź email, aby potwierdzić konto”, jeśli Supabase nie zwraca sesji po rejestracji).
 - Rekomendacja:
   - użyć shadcn/ui + Sonner (`sonner`) lub istniejącego rozwiązania w repo
   - dodać `<Toaster />` w layoucie `AuthLayout` (albo w globalnym layoucie, jeśli ma być używany w całej aplikacji)
 
 ## 5. Typy
+
 Widok rejestracji nie korzysta z REST API z `src/types.ts`, więc DTO z backendu nie są wymagane. Potrzebne są typy **ViewModel** oraz typy Supabase.
 
 ### 5.1 ViewModel: RegisterFormValues
+
 ```ts
 interface RegisterFormValues {
   email: string;
@@ -179,6 +197,7 @@ interface RegisterFormValues {
 ```
 
 ### 5.2 ViewModel: RegisterFormErrors
+
 ```ts
 interface RegisterFormErrors {
   email?: string;
@@ -188,6 +207,7 @@ interface RegisterFormErrors {
 ```
 
 ### 5.3 ViewModel: RegisterSubmitState
+
 ```ts
 interface RegisterSubmitState {
   isSubmitting: boolean;
@@ -196,20 +216,22 @@ interface RegisterSubmitState {
 ```
 
 ### 5.4 ViewModel: RegisterOutcome (zalecane)
+
 Cel: rozróżnić przypadek, gdy Supabase zwraca sesję (auto-login) vs gdy wymaga potwierdzenia email (brak sesji).
 
 ```ts
-type RegisterOutcome =
-  | { type: "signed-in"; redirectTo: string }
-  | { type: "needs-confirmation"; message: string };
+type RegisterOutcome = { type: "signed-in"; redirectTo: string } | { type: "needs-confirmation"; message: string };
 ```
 
 ### 5.5 Typy Supabase
+
 - `AuthError`
 - `Session` / `User`
 
 ## 6. Zarządzanie stanem
+
 Stan jest lokalny dla formularza (React). Zalecany model:
+
 - `values: RegisterFormValues`
 - `errors: RegisterFormErrors`
 - `isSubmitting: boolean`
@@ -217,9 +239,11 @@ Stan jest lokalny dla formularza (React). Zalecany model:
 - `outcome?: RegisterOutcome` (opcjonalnie, jeśli obsługujemy flow „potwierdź email”)
 
 ### 6.1 Custom hook (rekomendowany): useRegisterForm
+
 Cel: skupić logikę walidacji, submitu i mapowania błędów Supabase.
 
 Przykładowa sygnatura:
+
 ```ts
 function useRegisterForm(options: { redirectTo?: string | null }): {
   values: RegisterFormValues;
@@ -233,43 +257,55 @@ function useRegisterForm(options: { redirectTo?: string | null }): {
 ```
 
 ### 6.2 Hook pomocniczy (zalecany): useSafeRedirect
+
 Cel: bezpiecznie wyliczyć docelową ścieżkę przekierowania (chroni przed open redirect).
 
 Zasada:
+
 - akceptuj wyłącznie ścieżki lokalne zaczynające się od `/`
 - odrzucaj pełne URL (`http(s)://...`) oraz `//...`
 
 ## 7. Integracja API
 
 ### 7.1 Supabase Auth (bez REST)
+
 Rejestracja realizowana przez Supabase SDK:
+
 - `supabase.auth.signUp({ email, password })`
 
 Oczekiwane rezultaty:
+
 - sukces:
   - **wariant A (auto-login w Supabase)**: `data.session` istnieje → użytkownik jest zalogowany i można przekierować do `/dashboard`.
   - **wariant B (wymagane potwierdzenie email)**: `data.session` jest `null` → UI wyświetla informację „Sprawdź email, aby potwierdzić konto” (bez przekierowania), albo przekierowuje do `/login` z komunikatem.
 - błąd: `error` (np. email już zajęty, niepoprawny email, zbyt słabe hasło, rate limit, problemy sieciowe)
 
 ### 7.2 Redirect po sukcesie
+
 Minimalnie (zgodnie z opisem widoku):
+
 - zawsze przekieruj do `/dashboard` po sukcesie z sesją.
 
 Opcjonalnie (spójność z loginem):
+
 - jeśli `redirectTo` istnieje i jest bezpieczne → przekieruj do `redirectTo`, inaczej do `/dashboard`.
 
 ### 7.3 Uwagi o kliencie Supabase w przeglądarce (ważne w tym repo)
+
 W repo istnieje [src/db/supabase.client.ts](src/db/supabase.client.ts) używany w middleware (SSR / API). Dla widoku `/register` potrzebny jest klient Supabase działający w przeglądarce.
 
 Wymagania i ryzyka:
+
 - anon key jest bezpieczny do użycia po stronie klienta, ale musi być dostępny w bundlu.
 - w Astro/Vite zmienne środowiskowe udostępniane do klienta zwykle wymagają prefixu `PUBLIC_`.
 
 Rekomendacja planu implementacji:
+
 - utworzyć osobny moduł np. `src/db/supabase.browser.ts` używający `import.meta.env.PUBLIC_SUPABASE_URL` i `import.meta.env.PUBLIC_SUPABASE_ANON_KEY`.
 - zostawić ewentualny service role wyłącznie po stronie serwera (API routes), nigdy w React.
 
 ## 8. Interakcje użytkownika
+
 1. Użytkownik wpisuje email i hasło.
 2. UI waliduje pola:
    - przy `onBlur` lub przy `onSubmit` (decyzja implementacyjna; dla MVP wystarczy walidacja przy submit + wyczyszczenie błędu przy zmianie pola).
@@ -288,6 +324,7 @@ Rekomendacja planu implementacji:
 ## 9. Warunki i walidacja
 
 ### 9.1 Warunki weryfikowane przez UI
+
 - Email:
   - niepusty
   - poprawny format
@@ -296,6 +333,7 @@ Rekomendacja planu implementacji:
   - minimalna długość zgodna z polityką (minimum rekomendowane ≥ 8)
 
 ### 9.2 Jak warunki wpływają na UI
+
 - `SubmitButton` disabled, gdy:
   - trwa request (`isSubmitting`)
   - walidacja klienta nie przeszła
@@ -310,6 +348,7 @@ Rekomendacja planu implementacji:
   - opcjonalnie spinner
 
 ### 9.3 Warunki wymagane przez „API” (Supabase Auth) i jak je mapować
+
 - Supabase wymaga:
   - poprawnego email
   - hasła spełniającego minimalne wymagania (konfigurowalne)
@@ -322,6 +361,7 @@ Rekomendacja planu implementacji:
 ## 10. Obsługa błędów
 
 ### 10.1 Scenariusze błędów (rekomendowane pokrycie)
+
 - Email już istnieje / konto już utworzone:
   - komunikat: „Nie udało się utworzyć konta. Spróbuj się zalogować lub użyj innego emaila.”
   - CTA: link do `/login`
@@ -338,11 +378,13 @@ Rekomendacja planu implementacji:
   - toast ogólny + logowanie do konsoli (tylko w dev)
 
 ### 10.2 Zasady bezpieczeństwa i prywatności
+
 - Nie wyświetlać surowych komunikatów technicznych.
 - Nie logować wrażliwych danych (hasła) do konsoli.
 - Nie przechowywać hasła w localStorage.
 
 ## 11. Kroki implementacji
+
 1. Dodać stronę routingu `src/pages/register.astro` z osadzeniem `RegisterForm` (React) oraz linkiem do `/login`.
 2. Ustalić wspólny layout dla strefy publicznej:
    - wykorzystać istniejący `src/layouts/Layout.astro` albo dodać `src/layouts/AuthLayout.astro`.
@@ -361,8 +403,13 @@ Rekomendacja planu implementacji:
 9. Dodać obsługę błędów:
    - inline dla pól, toast dla błędów ogólnych.
 10. Dodać przekierowanie wstępne (gdy user ma sesję):
-   - w `RegisterPage` lub w samym `RegisterForm`.
+
+- w `RegisterPage` lub w samym `RegisterForm`.
+
 11. Sprawdzić dostępność:
-   - poprawne `label`, `autocomplete`, `aria-invalid`, `aria-describedby`, focus states.
+
+- poprawne `label`, `autocomplete`, `aria-invalid`, `aria-describedby`, focus states.
+
 12. (Opcjonalnie) Ujednolicić zachowanie `/login` i `/register`:
-   - wspólne komponenty pól, wspólny toast, wspólne helpery (np. `useSafeRedirect`).
+
+- wspólne komponenty pól, wspólny toast, wspólne helpery (np. `useSafeRedirect`).

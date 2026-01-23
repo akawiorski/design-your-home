@@ -48,10 +48,7 @@ describe("OpenRouterService", () => {
       roomId: "room-1",
       roomType: "Sypialnia",
       roomPhoto: { url: "https://room/photo" },
-      inspirationPhotos: [
-        { url: "https://insp/1" },
-        { url: "https://insp/2" },
-      ],
+      inspirationPhotos: [{ url: "https://insp/1" }, { url: "https://insp/2" }],
     });
 
     expect(result.roomId).toBe("room-1");
@@ -68,10 +65,7 @@ describe("OpenRouterService", () => {
         roomType: "Sypialnia",
         prompt: "x".repeat(ValidationRules.INSPIRATION_PROMPT_MAX_LENGTH + 1),
         roomPhoto: { url: "https://room/photo" },
-        inspirationPhotos: [
-          { url: "https://insp/1" },
-          { url: "https://insp/2" },
-        ],
+        inspirationPhotos: [{ url: "https://insp/1" }, { url: "https://insp/2" }],
       })
     ).rejects.toThrow("Prompt exceeds maximum length.");
   });

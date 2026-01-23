@@ -2,12 +2,12 @@
 
 ## 1. Resources
 
-| Resource | Database Table | Description |
-|----------|---------------|-------------|
-| Room Types | `room_types` | Dictionary of available room types (kitchen, bathroom, etc.) |
-| Rooms | `rooms` | Rooms owned by the user |
-| Room Photos | `room_photos` | Input photos for rooms (room photos and inspiration photos) |
-| Analytics Events | `analytics_events` | Analytics tracking events |
+| Resource         | Database Table     | Description                                                  |
+| ---------------- | ------------------ | ------------------------------------------------------------ |
+| Room Types       | `room_types`       | Dictionary of available room types (kitchen, bathroom, etc.) |
+| Rooms            | `rooms`            | Rooms owned by the user                                      |
+| Room Photos      | `room_photos`      | Input photos for rooms (room photos and inspiration photos)  |
+| Analytics Events | `analytics_events` | Analytics tracking events                                    |
 
 ## 2. Endpoints
 
@@ -22,6 +22,7 @@ List all available room types (dictionary).
 **Query Parameters:** None
 
 **Response Body:**
+
 ```json
 {
   "roomTypes": [
@@ -50,9 +51,11 @@ List all available room types (dictionary).
 ```
 
 **Success Codes:**
+
 - `200 OK` - Room types retrieved
 
 **Error Codes:**
+
 - `500 Internal Server Error` - Server error
 
 ---
@@ -68,6 +71,7 @@ List all rooms owned by the authenticated user.
 **Query Parameters:** None
 
 **Response Body:**
+
 ```json
 {
   "rooms": [
@@ -90,9 +94,11 @@ List all rooms owned by the authenticated user.
 ```
 
 **Success Codes:**
+
 - `200 OK` - Rooms retrieved
 
 **Error Codes:**
+
 - `401 Unauthorized` - No valid authentication token
 - `500 Internal Server Error` - Server error
 
@@ -105,6 +111,7 @@ Create a new room for the authenticated user.
 **Authentication:** Required (authenticated user)
 
 **Request Body:**
+
 ```json
 {
   "roomTypeId": 1
@@ -112,6 +119,7 @@ Create a new room for the authenticated user.
 ```
 
 **Response Body:**
+
 ```json
 {
   "id": "uuid",
@@ -130,15 +138,18 @@ Create a new room for the authenticated user.
 ```
 
 **Success Codes:**
+
 - `201 Created` - Room created successfully
 
 **Error Codes:**
+
 - `400 Bad Request` - Invalid roomTypeId or validation error
 - `401 Unauthorized` - No valid authentication token
 - `404 Not Found` - Room type not found
 - `500 Internal Server Error` - Server error
 
 **Validation:**
+
 - `roomTypeId` is required and must exist in `room_types` table
 
 ---
@@ -150,9 +161,11 @@ Get details of a specific room.
 **Authentication:** Required (authenticated user, must own room)
 
 **Path Parameters:**
+
 - `roomId` (uuid, required) - Room identifier
 
 **Response Body:**
+
 ```json
 {
   "id": "uuid",
@@ -180,9 +193,11 @@ Get details of a specific room.
 ```
 
 **Success Codes:**
+
 - `200 OK` - Room retrieved
 
 **Error Codes:**
+
 - `401 Unauthorized` - No valid authentication token
 - `403 Forbidden` - User does not own this room
 - `404 Not Found` - Room not found
@@ -199,9 +214,11 @@ Get a presigned URL for uploading a photo to Supabase Storage.
 **Authentication:** Required (authenticated user, must own room)
 
 **Path Parameters:**
+
 - `roomId` (uuid, required) - Room identifier
 
 **Request Body:**
+
 ```json
 {
   "photoType": "room",
@@ -211,6 +228,7 @@ Get a presigned URL for uploading a photo to Supabase Storage.
 ```
 
 **Response Body:**
+
 ```json
 {
   "uploadUrl": "https://supabase-storage-url/...",
@@ -221,9 +239,11 @@ Get a presigned URL for uploading a photo to Supabase Storage.
 ```
 
 **Success Codes:**
+
 - `200 OK` - Presigned URL generated
 
 **Error Codes:**
+
 - `400 Bad Request` - Invalid photoType or contentType
 - `401 Unauthorized` - No valid authentication token
 - `403 Forbidden` - User does not own this room
@@ -232,6 +252,7 @@ Get a presigned URL for uploading a photo to Supabase Storage.
 - `500 Internal Server Error` - Server error
 
 **Validation:**
+
 - `photoType` must be `'room'` or `'inspiration'`
 - `contentType` must be `'image/jpeg'`, `'image/png'`, or `'image/heic'`
 - Total photos per room cannot exceed 10
@@ -245,9 +266,11 @@ Create a photo record after successful upload to storage.
 **Authentication:** Required (authenticated user, must own room)
 
 **Path Parameters:**
+
 - `roomId` (uuid, required) - Room identifier
 
 **Request Body:**
+
 ```json
 {
   "photoId": "uuid",
@@ -258,6 +281,7 @@ Create a photo record after successful upload to storage.
 ```
 
 **Response Body:**
+
 ```json
 {
   "id": "uuid",
@@ -271,9 +295,11 @@ Create a photo record after successful upload to storage.
 ```
 
 **Success Codes:**
+
 - `201 Created` - Photo record created
 
 **Error Codes:**
+
 - `400 Bad Request` - Invalid request body or validation error
 - `401 Unauthorized` - No valid authentication token
 - `403 Forbidden` - User does not own this room
@@ -281,6 +307,7 @@ Create a photo record after successful upload to storage.
 - `500 Internal Server Error` - Server error
 
 **Validation:**
+
 - `photoId` must match ID from upload-url response
 - `storagePath` must match path from upload-url response
 - `photoType` must be `'room'` or `'inspiration'`
@@ -295,12 +322,15 @@ List photos for a specific room.
 **Authentication:** Required (authenticated user, must own room)
 
 **Path Parameters:**
+
 - `roomId` (uuid, required) - Room identifier
 
 **Query Parameters:**
+
 - `photoType` (optional, enum) - Filter by photo type: `'room'` or `'inspiration'`
 
 **Response Body:**
+
 ```json
 {
   "photos": [
@@ -322,13 +352,16 @@ List photos for a specific room.
 ```
 
 **Success Codes:**
+
 - `200 OK` - Photos retrieved
 
 **Error Codes:**
+
 - `401 Unauthorized` - No valid authentication token
 - `403 Forbidden` - User does not own this room
 - `404 Not Found` - Room not found
 - `500 Internal Server Error` - Server error
+
 ### 2.8 Analytics
 
 #### POST /api/analytics/events
@@ -338,6 +371,7 @@ Track an analytics event.
 **Authentication:** Required (authenticated user)
 
 **Request Body:**
+
 ```json
 {
   "eventType": "InspirationGenerated",
@@ -350,6 +384,7 @@ Track an analytics event.
 ```
 
 **Response Body:**
+
 ```json
 {
   "message": "Event tracked successfully",
@@ -358,17 +393,21 @@ Track an analytics event.
 ```
 
 **Success Codes:**
+
 - `201 Created` - Event tracked
 
 **Error Codes:**
+
 - `400 Bad Request` - Invalid event data
 - `500 Internal Server Error` - Server error
 
 **Validation:**
+
 - `eventType` is required (string)
 - `eventData` is required (object, will be stored as JSONB)
 
 **Supported Event Types:**
+
 - `InspirationGenerated` - When inspiration is generated
 - `RoomCreated` - When room is created
 - `PhotoUploaded` - When photo is uploaded
@@ -382,6 +421,7 @@ Track an analytics event.
 **Provider:** Supabase Auth
 
 **Flow:**
+
 1. Client uses Supabase Auth SDK to authenticate users
 2. Supported methods:
    - Email + Password
@@ -391,6 +431,7 @@ Track an analytics event.
 4. JWT token sent in `Authorization` header: `Bearer <token>`
 
 **Token Structure:**
+
 - Standard JWT with claims including `sub` (user ID)
 - Validated by Supabase on each request
 - Contains user metadata and role
@@ -398,17 +439,20 @@ Track an analytics event.
 ### 3.2 Authorization Strategy
 
 **Row Level Security (RLS):**
+
 - Enforced at database level via Supabase
 - All tables have RLS enabled (see migration file)
 - No policies defined in migration - all access via service_role key
 
 **API Authorization:**
+
 - API uses Supabase service_role key for database operations
 - API validates JWT token and extracts user ID
 - All queries filtered by user ID from token
 - Ownership checks for room-based operations
 
 **Access Control:**
+
 - **Authenticated (required for all endpoints in this MVP):**
   - Room types, rooms, photos, generation, analytics
   - User can only access their own resources
@@ -418,22 +462,20 @@ Track an analytics event.
 **Purpose:** Backend API uses service_role key to bypass RLS and implement custom authorization logic
 
 **Security:**
+
 - Service role key stored in environment variables (server-side only)
 - Never exposed to client
 - API implements authorization checks before database operations
 
 **Implementation:**
+
 ```typescript
 // Example authorization check
 async function validateRoomOwnership(roomId: string, userId: string) {
-  const room = await supabase
-    .from('rooms')
-    .select('user_id')
-    .eq('id', roomId)
-    .single();
-  
+  const room = await supabase.from("rooms").select("user_id").eq("id", roomId).single();
+
   if (room.data?.user_id !== userId) {
-    throw new ForbiddenError('Access denied');
+    throw new ForbiddenError("Access denied");
   }
 }
 ```
@@ -445,10 +487,12 @@ async function validateRoomOwnership(roomId: string, userId: string) {
 ### 4.1 Validation Rules
 
 #### Rooms
+
 - `roomTypeId`: required, must exist in `room_types` table
 - Room ownership: room row is linked to the authenticated user (`rooms.user_id`)
 
 #### Room Photos
+
 - `photoType`: required, enum `['room', 'inspiration']`
 - `contentType`: required, must be `image/jpeg`, `image/png`, or `image/heic`
 - `description`: optional, max 500 characters
@@ -456,12 +500,14 @@ async function validateRoomOwnership(roomId: string, userId: string) {
 - File size limit: 10MB per file (enforced at storage level)
 
 #### Inspiration Generation
+
 - Requires minimum 1 room photo + 2 inspiration photos
 - `bulletPoints`: array of strings, 3-6 items recommended
 - Generates exactly 2 images per inspiration (position 1 and 2)
 - Images: 1080×720 px, JPEG format
 
 #### Analytics Events
+
 - `eventType`: required, string
 - `eventData`: required, valid JSON object
 - `userId`: required (authenticated user)
@@ -469,25 +515,28 @@ async function validateRoomOwnership(roomId: string, userId: string) {
 ### 4.2 Business Logic Implementation
 
 #### BL-1: Photo Upload Validation
+
 **PRD Reference:** Section 3.4 - "Minimum 1 room photo, 2 inspiration photos"
 
 **Logic:**
+
 - Validate before allowing generation
 - Check counts in generate endpoint
 - Provide clear error messages for missing photos
 
 **Implementation:**
+
 ```typescript
 async function validatePhotoRequirements(roomId: string) {
   const photos = await getRoomPhotos(roomId);
-  const roomCount = photos.filter(p => p.photoType === 'room').length;
-  const inspirationCount = photos.filter(p => p.photoType === 'inspiration').length;
-  
+  const roomCount = photos.filter((p) => p.photoType === "room").length;
+  const inspirationCount = photos.filter((p) => p.photoType === "inspiration").length;
+
   if (roomCount < 1) {
-    throw new ValidationError('At least 1 room photo required');
+    throw new ValidationError("At least 1 room photo required");
   }
   if (inspirationCount < 2) {
-    throw new ValidationError('At least 2 inspiration photos required');
+    throw new ValidationError("At least 2 inspiration photos required");
   }
 }
 ```
@@ -495,9 +544,11 @@ async function validatePhotoRequirements(roomId: string) {
 ---
 
 #### BL-2: Inspiration Generation
+
 **PRD Reference:** Section 3.5 - "2 images per variant, bullet points"
 
 **Logic:**
+
 1. Validate photo requirements
 2. Prepare prompt with room context
 3. Call OpenRouter AI service
@@ -506,12 +557,14 @@ async function validatePhotoRequirements(roomId: string) {
 6. Return complete inspiration with signed URLs (no Postgres persistence in MVP)
 
 **AI Integration:**
+
 - Service: OpenRouter.ai
 - Model: To be configured (e.g., GPT-4 Vision, Claude, etc.)
 - Input: Room photos + inspiration photos + optional user prompt
 - Output: 2 generated images (1080×720) + 4-6 bullet points
 
 **Error Handling:**
+
 - AI service timeout: 30 seconds
 - Rate limiting: Respect OpenRouter limits
 - Fallback: Queue for async processing if needed (future)
@@ -521,6 +574,7 @@ async function validatePhotoRequirements(roomId: string) {
 ### 4.3 Error Handling
 
 **Standard Error Response:**
+
 ```json
 {
   "error": {
@@ -539,6 +593,7 @@ async function validatePhotoRequirements(roomId: string) {
 ```
 
 **Error Codes:**
+
 - `VALIDATION_ERROR` - Request validation failed
 - `AUTHENTICATION_REQUIRED` - Authentication required
 - `FORBIDDEN` - Access denied (ownership check)
@@ -554,21 +609,23 @@ async function validatePhotoRequirements(roomId: string) {
 ### 4.4 Rate Limiting
 
 **Strategy:**
+
 - Per-user rate limiting for authenticated users
 - Generous limits for MVP, can tighten based on usage
 
 **Limits (MVP):**
+
 - Generate inspirations: 20 per hour per user
 - Upload photos: 30 per hour per user
 - General API: 300 requests per hour per user
 
 **Implementation:**
+
 - Use middleware (e.g., express-rate-limit)
 - Store in Redis or in-memory for MVP
 - Return 429 with Retry-After header
 
 ---
-
 
 ## 5. API Versioning
 
@@ -577,6 +634,7 @@ async function validatePhotoRequirements(roomId: string) {
 **Current Version:** v1 (implicit, no version in path for MVP)
 
 **Future Versioning:**
+
 - Breaking changes: `/api/v2/...`
 - Current version remains available during transition
 - Deprecation notices in response headers
@@ -586,16 +644,20 @@ async function validatePhotoRequirements(roomId: string) {
 ## 6. CORS Configuration
 
 **Allowed Origins:**
+
 - Development: `http://localhost:4321` (Astro dev server)
 - Production: `https://yourdomain.com`
 
 **Allowed Methods:**
+
 - GET, POST, PATCH, OPTIONS
 
 **Allowed Headers:**
+
 - Authorization, Content-Type
 
 **Credentials:**
+
 - Enabled (for cookies if using session-based auth)
 
 ---
@@ -605,23 +667,28 @@ async function validatePhotoRequirements(roomId: string) {
 ### 7.1 Caching
 
 **Room Types:**
+
 - Cache room types list (rarely changes)
 - Cache-Control: `public, max-age=3600`
 
 **Signed URLs:**
+
 - Short-lived (1 hour expiry)
 - No caching
 
 **User Resources:**
+
 - Cache-Control: `private, no-cache` (force revalidation)
 
 ### 7.2 Database Optimization
 
 **Indexes:**
+
 - Already defined in migration (see db-plan.md Section 3)
 - Composite indexes for common queries
 
 **Query Optimization:**
+
 - Use `select()` with specific columns
 - Limit joined data depth
 - Pagination to avoid large result sets
@@ -629,6 +696,7 @@ async function validatePhotoRequirements(roomId: string) {
 ### 7.3 Storage Optimization
 
 **Image Delivery:**
+
 - Use Supabase Storage signed URLs
 - Consider CDN for generated images (future)
 - Thumbnail generation for gallery view (future)
@@ -638,11 +706,13 @@ async function validatePhotoRequirements(roomId: string) {
 ## 8. Monitoring and Logging
 
 **Logging Strategy:**
+
 - Structured JSON logs
 - Log levels: ERROR, WARN, INFO, DEBUG
 - Include request ID, user ID, timestamp
 
 **Metrics to Track:**
+
 - Request latency (p50, p95, p99)
 - Error rates by endpoint
 - AI generation success rate
@@ -650,6 +720,7 @@ async function validatePhotoRequirements(roomId: string) {
 - Analytics events volume
 
 **Monitoring Tools:**
+
 - Application: Astro/Node.js built-in logging
 - Database: Supabase dashboard
 - Alerts: Email/Slack for critical errors
@@ -661,21 +732,25 @@ async function validatePhotoRequirements(roomId: string) {
 ### 9.1 Tech Stack Integration
 
 **Astro:**
+
 - API routes in `src/pages/api/`
 - Server-side rendering for initial page load
 - Client-side React for interactive features
 
 **Supabase:**
+
 - Service role key for server-side operations
 - Client SDK for direct operations (optional)
 - Storage for photos and generated images
 
 **TypeScript:**
+
 - Strong typing for API requests/responses
 - Shared types between frontend and backend
 - Auto-generated types from Supabase schema
 
 **OpenRouter:**
+
 - API key stored in environment variables
 - Rate limiting and error handling
 - Cost tracking per generation
@@ -683,6 +758,7 @@ async function validatePhotoRequirements(roomId: string) {
 ### 9.2 Deployment
 
 **Environment Variables:**
+
 ```env
 # Supabase
 PUBLIC_SUPABASE_URL=https://xxx.supabase.co
@@ -698,6 +774,7 @@ API_BASE_URL=https://api.yourdomain.com
 ```
 
 **Build Process:**
+
 1. TypeScript compilation
 2. Astro build
 3. Deploy to DigitalOcean
@@ -708,9 +785,12 @@ API_BASE_URL=https://api.yourdomain.com
 ## 10. Future Enhancements
 
 **Planned Features (Post-MVP):**
+
 1. Async generation with webhooks
 2. Multi-project support
-  - (not in MVP; rooms are directly owned by the user in current scope)
+
+- (not in MVP; rooms are directly owned by the user in current scope)
+
 3. Room photo editing/cropping
 4. Inspiration sharing (public links)
 5. Advanced filtering and search

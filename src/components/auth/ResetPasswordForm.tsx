@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { Button } from '../ui/button';
-import { Spinner } from '../ui/spinner';
+import { useState } from "react";
+import { Button } from "../ui/button";
+import { Spinner } from "../ui/spinner";
+import { supabaseClient } from "../../db/supabase.client";
 
 const PASSWORD_MIN_LENGTH = 4;
 
 export default function ResetPasswordForm() {
   const [values, setValues] = useState({
-    password: '',
-    confirmPassword: '',
+    password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState<any>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -20,7 +21,7 @@ export default function ResetPasswordForm() {
       newErrors.password = `Hasło powinno mieć co najmniej ${PASSWORD_MIN_LENGTH} znaków.`;
     }
     if (values.password !== values.confirmPassword) {
-      newErrors.confirmPassword = 'Hasła nie są identyczne.';
+      newErrors.confirmPassword = "Hasła nie są identyczne.";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -30,20 +31,46 @@ export default function ResetPasswordForm() {
     e.preventDefault();
     if (!validate()) return;
 
+    if (!supabaseClient) {
+      setFormError("Usługa jest chwilowo niedostępna.");
+      return;
+    }
+
     setIsLoading(true);
     setFormError(null);
 
-    // Mock API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const { error } = await supabaseClient.auth.updateUser({
+        password: values.password,
+      });
 
-    // Mock success
-    setResetSuccess(true);
-    setIsLoading(false);
-    
-    // In a real app, you'd redirect after a short delay
-    setTimeout(() => {
-        window.location.href = '/login';
-    }, 2000);
+      if (error) {
+        if (error.message.includes("session") || error.message.includes("token")) {
+          setFormError("Link wygasł lub jest nieprawidłowy. Spróbuj ponownie.");
+        } else {
+          setFormError("Wystąpił błąd. Spróbuj ponownie.");
+        }
+        if (import.meta.env.DEV) {
+          console.error("Password reset error:", error);
+        }
+        return;
+      }
+
+      // Success
+      setResetSuccess(true);
+
+      // Redirect after a short delay
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+    } catch (error) {
+      setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
+      if (import.meta.env.DEV) {
+        console.error("Unexpected password reset error:", error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (resetSuccess) {
@@ -58,7 +85,9 @@ export default function ResetPasswordForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       {formError && <p className="text-red-500">{formError}</p>}
       <div>
-        <label htmlFor="password"  className="block text-sm font-medium text-gray-700">Nowe hasło</label>
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+          Nowe hasło
+        </label>
         <input
           id="password"
           type="password"
@@ -72,10 +101,16 @@ export default function ResetPasswordForm() {
           aria-invalid={!!errors.password}
           aria-describedby={errors.password ? "password-error" : undefined}
         />
-        {errors.password && <p id="password-error" className="mt-1 text-sm text-red-600">{errors.password}</p>}
+        {errors.password && (
+          <p id="password-error" className="mt-1 text-sm text-red-600">
+            {errors.password}
+          </p>
+        )}
       </div>
       <div>
-        <label htmlFor="confirmPassword"  className="block text-sm font-medium text-gray-700">Potwierdź nowe hasło</label>
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+          Potwierdź nowe hasło
+        </label>
         <input
           id="confirmPassword"
           type="password"
@@ -89,10 +124,14 @@ export default function ResetPasswordForm() {
           aria-invalid={!!errors.confirmPassword}
           aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
         />
-        {errors.confirmPassword && <p id="confirm-password-error" className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
+        {errors.confirmPassword && (
+          <p id="confirm-password-error" className="mt-1 text-sm text-red-600">
+            {errors.confirmPassword}
+          </p>
+        )}
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? <Spinner /> : 'Ustaw nowe hasło'}
+        {isLoading ? <Spinner /> : "Ustaw nowe hasło"}
       </Button>
     </form>
   );

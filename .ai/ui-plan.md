@@ -4,15 +4,18 @@
 
 Aplikacja MVP składa się z dwóch obszarów:
 
-1) **Strefa publiczna (bez sesji)** – strony uwierzytelniania:
+1. **Strefa publiczna (bez sesji)** – strony uwierzytelniania:
+
 - `/login`
 - `/register`
 
-2) **Strefa prywatna (wymaga sesji)** – właściwa aplikacja:
+2. **Strefa prywatna (wymaga sesji)** – właściwa aplikacja:
+
 - Dashboard z listą pokoi: `/dashboard`
 - Widok pokoju (praca na zdjęciach + generowanie): `/rooms/{roomId}`
 
 Założenia architektoniczne UI:
+
 - **Astro jako shell / routing**, React dla interaktywnych fragmentów.
 - **Astro View Transitions** dla płynnych przejść między widokami.
 - **Jeden wspólny layout “App Shell”** dla strefy prywatnej (nagłówek, nawigacja, obszar treści, globalne toasty).
@@ -24,6 +27,7 @@ Założenia architektoniczne UI:
 Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępność / bezpieczeństwo.
 
 ### 2.1 Landing / Redirect
+
 - **Nazwa widoku:** Redirect startowy
 - **Ścieżka widoku:** `/`
 - **Główny cel:** Skierować użytkownika do właściwego miejsca na podstawie sesji.
@@ -35,6 +39,7 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
   - Jeśli sesja → przekieruj do `/dashboard`.
 
 ### 2.2 Logowanie
+
 - **Nazwa widoku:** Logowanie
 - **Ścieżka widoku:** `/login`
 - **Główny cel:** Uwierzytelnić użytkownika.
@@ -51,6 +56,7 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
   - Ochrona przed przypadkowym wielokrotnym wysłaniem (disabled w trakcie requestu).
 
 ### 2.3 Rejestracja
+
 - **Nazwa widoku:** Rejestracja
 - **Ścieżka widoku:** `/register`
 - **Główny cel:** Utworzyć konto i zalogować użytkownika.
@@ -66,6 +72,7 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
   - Po sukcesie: przekierowanie do `/dashboard`.
 
 ### 2.4 Dashboard (lista pokoi)
+
 - **Nazwa widoku:** Dashboard
 - **Ścieżka widoku:** `/dashboard`
 - **Główny cel:**
@@ -91,6 +98,7 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
   - Jeśli API zwróci `401` → natychmiastowe przekierowanie do `/login`.
 
 ### 2.5 Widok pokoju (szczegóły + zdjęcia + generowanie)
+
 - **Nazwa widoku:** Pokój
 - **Ścieżka widoku:** `/rooms/{roomId}`
 - **Główny cel:**
@@ -134,6 +142,7 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
   - Obsługa `404`: ekran „Nie znaleziono pokoju” + link do dashboardu.
 
 ### 2.6 Widoki systemowe (wspólne)
+
 - **Nazwa widoku:** Not Found
 - **Ścieżka widoku:** `/404` (oraz fallback)
 - **Cel:** Przyjazna obsługa błędnych URL.
@@ -152,26 +161,28 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
 ## 3. Mapa podróży użytkownika
 
 ### 3.1 Główny przypadek użycia: pierwszy wariant inspiracji dla nowego użytkownika
-1) Użytkownik wchodzi na `/`.
-2) Brak sesji → redirect do `/login`.
-3) Użytkownik przechodzi do `/register`, tworzy konto.
-4) Po sukcesie → redirect do `/dashboard`.
-5) Na dashboardzie brak pokoi → stan pusty z CTA.
-6) Użytkownik klika CTA → otwiera się modal tworzenia pokoju.
-7) UI pobiera typy pokoi (`GET /api/room-types`), użytkownik wybiera typ.
-8) UI wysyła `POST /api/rooms` → po sukcesie odświeża listę (`GET /api/rooms`) i przechodzi do `/rooms/{roomId}`.
-9) W pokoju użytkownik widzi dwie sekcje zdjęć i checklistę wymagań.
-10) Użytkownik dodaje co najmniej 1 zdjęcie pokoju:
+
+1. Użytkownik wchodzi na `/`.
+2. Brak sesji → redirect do `/login`.
+3. Użytkownik przechodzi do `/register`, tworzy konto.
+4. Po sukcesie → redirect do `/dashboard`.
+5. Na dashboardzie brak pokoi → stan pusty z CTA.
+6. Użytkownik klika CTA → otwiera się modal tworzenia pokoju.
+7. UI pobiera typy pokoi (`GET /api/room-types`), użytkownik wybiera typ.
+8. UI wysyła `POST /api/rooms` → po sukcesie odświeża listę (`GET /api/rooms`) i przechodzi do `/rooms/{roomId}`.
+9. W pokoju użytkownik widzi dwie sekcje zdjęć i checklistę wymagań.
+10. Użytkownik dodaje co najmniej 1 zdjęcie pokoju:
     - `POST /api/rooms/{roomId}/photos/upload-url` → upload → `POST /api/rooms/{roomId}/photos`.
-11) Użytkownik dodaje co najmniej 2 zdjęcia inspiracji (ten sam flow, `photoType=inspiration`).
-12) Checklist spełniona → przycisk „Generuj” aktywny.
-13) Użytkownik klika „Generuj”:
+11. Użytkownik dodaje co najmniej 2 zdjęcia inspiracji (ten sam flow, `photoType=inspiration`).
+12. Checklist spełniona → przycisk „Generuj” aktywny.
+13. Użytkownik klika „Generuj”:
     - UI blokuje przycisk, pokazuje loader.
     - `POST /api/rooms/{roomId}/generate`.
-14) Sukces → UI dodaje nową kartę wyniku na górze listy (2 obrazy + bullet points).
-15) Użytkownik może wygenerować kolejne warianty (powtarza krok 13–14).
+14. Sukces → UI dodaje nową kartę wyniku na górze listy (2 obrazy + bullet points).
+15. Użytkownik może wygenerować kolejne warianty (powtarza krok 13–14).
 
 ### 3.2 Powrót użytkownika
+
 - Wejście na `/` z sesją → `/dashboard`.
 - Wybór istniejącego pokoju z listy → `/rooms/{roomId}`.
 - Dalsza praca na zdjęciach i generacji.
@@ -179,10 +190,12 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
 ## 4. Układ i struktura nawigacji
 
 ### 4.1 Publiczna nawigacja
+
 - Na `/login` i `/register` prosty layout (bez elementów aplikacji).
 - Linki wzajemne między logowaniem a rejestracją.
 
 ### 4.2 Prywatna nawigacja (App Shell)
+
 - Stały nagłówek:
   - Nazwa aplikacji (link do `/dashboard`).
   - Opcjonalnie: menu użytkownika (np. „Wyloguj”).
@@ -191,9 +204,11 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
   - Breadcrumb (opcjonalnie) `Dashboard / {RoomType}`.
 
 ### 4.3 Mechanika przejść
+
 - Przejścia pomiędzy `/dashboard` ↔ `/rooms/{roomId}` realizowane przez routing + Astro View Transitions.
 
 ### 4.4 Zasady dostępu (guard)
+
 - Wszystkie ścieżki poza `/login` i `/register` wymagają sesji.
 - `401` z API:
   - UI czyści stan sesji i przekierowuje do `/login`.
@@ -204,34 +219,44 @@ Poniżej: każdy widok zawiera cel, dane, komponenty oraz uwagi UX / dostępnoś
 
 Poniższe komponenty są współdzielone między widokami lub krytyczne dla spójności UX.
 
-1) **AuthGate / SessionProvider**
+1. **AuthGate / SessionProvider**
+
 - Odpowiada za wykrycie sesji, przekierowania i odświeżanie stanu użytkownika.
 
-2) **API Client (warstwa UI)**
+2. **API Client (warstwa UI)**
+
 - Ujednolicone wywołania endpointów, mapowanie błędów na komunikaty użytkownika, obsługa `401`.
 
-3) **ToastProvider (shadcn/ui)**
+3. **ToastProvider (shadcn/ui)**
+
 - Globalny system komunikatów (błędy/sukcesy), z `aria-live`.
 
-4) **RoomsStore (zustand / nanostores)**
+4. **RoomsStore (zustand / nanostores)**
+
 - Globalny stan listy pokoi (cache po zalogowaniu, odświeżanie po `POST /api/rooms`).
 
-5) **CreateRoomDialog**
+5. **CreateRoomDialog**
+
 - Modal z selectem typów pokoi, walidacją i stanem submit.
 
-6) **PhotosSection**
+6. **PhotosSection**
+
 - Sekcja galerii zdjęć dla `photoType=room` lub `photoType=inspiration`.
 
-7) **UploadFlow (UploadButton + walidacja + progres)**
+7. **UploadFlow (UploadButton + walidacja + progres)**
+
 - Walidacja formatów (jpg/png/heic), czytelne błędy, obsługa limitu 10 zdjęć.
 
-8) **PhotoRequirementsTracker**
+8. **PhotoRequirementsTracker**
+
 - Checklist: `room >= 1`, `inspiration >= 2`, wizualny postęp + wyjaśnienie wymagań.
 
-9) **GeneratePanel**
+9. **GeneratePanel**
+
 - Przycisk generowania + loader + obsługa retry + blokada podczas requestu.
 
-10) **GenerationResultsList / ResultCard**
+10. **GenerationResultsList / ResultCard**
+
 - Lista wyników w stanie lokalnym (bez persystencji), newest-first.
 
 ---
@@ -239,6 +264,7 @@ Poniższe komponenty są współdzielone między widokami lub krytyczne dla spó
 ## Mapowanie na API (zgodność)
 
 UI korzysta z endpointów zgodnie z planem API:
+
 - Room types: `GET /api/room-types` (publiczne – ale używane głównie po zalogowaniu w modalu)
 - Rooms: `GET /api/rooms`, `POST /api/rooms`, `GET /api/rooms/{roomId}`
 - Photos: `GET /api/rooms/{roomId}/photos`, `POST /api/rooms/{roomId}/photos/upload-url`, `POST /api/rooms/{roomId}/photos`
@@ -268,12 +294,11 @@ Każda operacja wymagająca autoryzacji jest wykonywana wyłącznie w kontekści
 
 ## Przypadki brzegowe i stany błędów (UX)
 
-1) **Brak pokoi**: Dashboard pokazuje stan pusty + CTA.
-2) **Sesja wygasła / 401**: natychmiastowy redirect do `/login` + toast „Sesja wygasła”.
-3) **Brak dostępu / 403**: komunikat „Brak dostępu do tego pokoju” + link do dashboardu.
-4) **Pokój nie istnieje / 404**: komunikat „Nie znaleziono pokoju” + link do dashboardu.
-5) **Limit zdjęć / 413**: toast z informacją o limicie i sugestią usunięcia (jeśli dodane w przyszłości) lub wykorzystania istniejących.
-6) **Niepoprawny format pliku / 400**: inline błąd przy uploadzie + toast.
-7) **Błąd generacji (timeout / 5xx / credits)**: karta błędu + retry; komunikat prosty, bez danych technicznych.
-8) **Słabe łącze / offline**: komunikat „Brak połączenia” + przycisk ponów.
-
+1. **Brak pokoi**: Dashboard pokazuje stan pusty + CTA.
+2. **Sesja wygasła / 401**: natychmiastowy redirect do `/login` + toast „Sesja wygasła”.
+3. **Brak dostępu / 403**: komunikat „Brak dostępu do tego pokoju” + link do dashboardu.
+4. **Pokój nie istnieje / 404**: komunikat „Nie znaleziono pokoju” + link do dashboardu.
+5. **Limit zdjęć / 413**: toast z informacją o limicie i sugestią usunięcia (jeśli dodane w przyszłości) lub wykorzystania istniejących.
+6. **Niepoprawny format pliku / 400**: inline błąd przy uploadzie + toast.
+7. **Błąd generacji (timeout / 5xx / credits)**: karta błędu + retry; komunikat prosty, bez danych technicznych.
+8. **Słabe łącze / offline**: komunikat „Brak połączenia” + przycisk ponów.
