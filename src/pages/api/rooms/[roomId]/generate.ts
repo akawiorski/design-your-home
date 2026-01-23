@@ -97,6 +97,14 @@ export async function POST(context: APIContext) {
     const roomPhotos = photos.filter((photo) => photo.photoType === "room");
     const inspirationPhotos = photos.filter((photo) => photo.photoType === "inspiration");
 
+    console.info("generate.inspiration.request", {
+      roomId,
+      userId,
+      promptLength: parsedBody.data.prompt?.length ?? 0,
+      roomPhotosCount: roomPhotos.length,
+      inspirationPhotosCount: inspirationPhotos.length,
+    });
+
     if (roomPhotos.length < ValidationRules.MIN_ROOM_PHOTOS) {
       return errorResponse(400, "VALIDATION_ERROR", "At least one room photo is required.", {
         current: roomPhotos.length,
@@ -112,19 +120,18 @@ export async function POST(context: APIContext) {
     }
 
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
-    const modelName = import.meta.env.OPENROUTER_MODEL;
     const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1";
 
-    if (!apiKey || !modelName) {
+    if (!apiKey) {
       return errorResponse(500, "OPENROUTER_NOT_CONFIGURED", "OpenRouter configuration is missing.");
     }
 
     const service = new OpenRouterService({
       apiKey,
       baseUrl,
-      modelName,
-      defaultParams: { temperature: 0.6, top_p: 0.9, max_tokens: 800 },
-      timeoutMs: 30_000,
+      modelName: "google/gemini-2.5-flash-image", // This will be overridden in generateRoomInspiration
+      defaultParams: { temperature: 0.6, top_p: 0.9, max_tokens: 4000 },
+      timeoutMs: 120_000,
     });
 
     const input: GenerateRoomInspirationInput = {

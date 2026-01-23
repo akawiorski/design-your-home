@@ -36,6 +36,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
     prompt: "",
     results: [],
     descriptionResult: null,
+    descriptionImageUrl: null,
   });
 
   const canGenerate =
@@ -80,6 +81,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
       setState((prev) => ({
         ...prev,
         descriptionResult: response.advice,
+        descriptionImageUrl: response.image.url,
       }));
     }
   }, [generateSimple, state.prompt]);
@@ -163,6 +165,7 @@ export function RoomPage({ roomId }: RoomPageProps) {
             isGeneratingDescription={generateSimpleState.status === "loading"}
             onGenerateDescription={handleGenerateDescription}
             descriptionResult={state.descriptionResult}
+            descriptionImageUrl={state.descriptionImageUrl}
           />
         </div>
       </div>

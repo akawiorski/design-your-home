@@ -117,6 +117,20 @@ Kryteria akceptacji:
 - Każda generacja tworzy nową kartę.
 - System działa w ramach dostępnych kredytów LLM.
 
+### US-007: Bezpieczny dostęp i uwierzytelnianie
+ID: US-006
+Tytuł: Bezpieczny dostęp
+Opis: Jako użytkownik chcę mieć możliwość rejestracji i logowania się do systemu w sposób zapewniający bezpieczeństwo moich danych.
+Kryteria akceptacji:
+  - Logowanie i rejestracja odbywają się na dedykowanych stronach.
+  - Logowanie wymaga podania adresu email i hasła.
+  - Rejestracja wymaga podania adresu email, hasła i potwierdzenia hasła.
+  - Użytkownik NIE MOŻE korzystać z funkcji Generowania bez logowania się do systemu (US-005 i US-006).
+  - Użytkownik może logować się do systemu poprzez przycisk w prawym górnym rogu.
+  - Użytkownik może się wylogować z systemu poprzez przycisk w prawym górnym rogu w głównym @Layout.astro.
+  - Nie korzystamy z zewnętrznych serwisów logowania (np. Google, GitHub).
+  - Odzyskiwanie hasła powinno być możliwe.
+
 ### US-011
 ID: US-011  
 Tytuł: Obsługa błędów generacji  

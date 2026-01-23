@@ -4,6 +4,7 @@ import type {
   GenerateSimpleInspirationResponse,
   GeneratedInspirationDTO,
   OpenRouterResponseSchema,
+  OpenRouterSimpleResponseSchema,
 } from "../../types";
 import { ValidationRules } from "../../types";
 
@@ -25,6 +26,13 @@ interface OpenRouterChatResponse {
   choices?: {
     message?: {
       content?: string | { type: string; text?: string }[];
+      images?: {
+        index: number;
+        type: string;
+        image_url: {
+          url: string;
+        };
+      }[];
     };
   }[];
 }
@@ -41,7 +49,7 @@ export class OpenRouterService {
     this.baseUrl = config.baseUrl;
     this.modelName = config.modelName;
     this.defaultParams = config.defaultParams ?? {};
-    this.timeoutMs = config.timeoutMs ?? 30_000;
+    this.timeoutMs = config.timeoutMs ?? 120_000;
   }
 
   public get config() {
@@ -56,13 +64,26 @@ export class OpenRouterService {
   public async generateRoomInspiration(input: GenerateRoomInspirationInput): Promise<GeneratedInspirationDTO> {
     this.validateInput(input);
 
+    // Convert image URLs to base64
+    const roomPhotoBase64 = await this.fetchImageAsBase64(input.roomPhoto.url);
+    const inspirationPhotosBase64 = await Promise.all(
+      input.inspirationPhotos.map(async (photo) => ({
+        base64: await this.fetchImageAsBase64(photo.url),
+        description: photo.description,
+      }))
+    );
+
     const payload = {
-      model: this.modelName,
+      model: "google/gemini-2.5-flash-image",
       messages: [
         { role: "system", content: this.buildSystemMessage() },
-        { role: "user", content: this.buildUserMessage(input) },
+        {
+          role: "user",
+          content: await this.buildUserMessageWithImages(input, roomPhotoBase64, inspirationPhotosBase64),
+        },
       ],
-      response_format: this.buildResponseFormat(),
+      modalities: ["image", "text"],
+      stream: false,
       temperature: this.defaultParams.temperature ?? 0.6,
       top_p: this.defaultParams.top_p ?? 0.9,
       max_tokens: this.defaultParams.max_tokens ?? 800,
@@ -91,17 +112,24 @@ export class OpenRouterService {
         { role: "system", content: this.buildSimpleSystemMessage() },
         { role: "user", content: this.buildSimpleUserMessage(input) },
       ],
+      response_format: this.buildSimpleResponseFormat(),
+      stream: false,
       temperature: this.defaultParams.temperature ?? 0.7,
       top_p: this.defaultParams.top_p ?? 0.9,
       max_tokens: this.defaultParams.max_tokens ?? 600,
     };
 
     const response = await this.callOpenRouter(payload);
-    const advice = this.extractTextFromResponse(response);
+    const parsed = this.mapSimpleResponseToDto(response);
 
     return {
       roomId: input.roomId,
-      advice,
+      advice: parsed.advice,
+      image: {
+        url: parsed.image.url,
+        position: parsed.image.position,
+        storagePath: parsed.image.url,
+      },
     };
   }
 
@@ -162,15 +190,19 @@ export class OpenRouterService {
   private buildSystemMessage() {
     return (
       "Jesteś asystentem projektowania wnętrz. Na podstawie zdjęcia pokoju i inspiracji " +
-      "generujesz dwie wizualizacje tego samego pomysłu. Zwróć wyłącznie JSON zgodny ze schematem."
+      "przed wszystkim generujesz jedną wizualizację tego pomysłu. Ma rozdzielczość " +
+      `${ValidationRules.GENERATED_IMAGE_WIDTH}×${ValidationRules.GENERATED_IMAGE_HEIGHT} ` +
+      "(orientacja pionowa). Dodatkowo zwróć kilka punktów z poradami w JSON oraz wygeneruj jeden obraz."
     );
   }
 
   private buildSimpleSystemMessage() {
     return (
       "Jesteś asystentem projektowania wnętrz. Na podstawie opisu pomieszczenia " +
-      "zwróć krótki, konkretny opis porad do urządzania pokoju w języku polskim. " +
-      "Nie zwracaj JSON, tylko czysty tekst."
+      "generujesz jedną wizualizację inspiracji oraz krótki opis porad do urządzania pokoju " +
+      "w języku polskim. Obraz ma rozdzielczość " +
+      `${ValidationRules.GENERATED_IMAGE_WIDTH}×${ValidationRules.GENERATED_IMAGE_HEIGHT} ` +
+      "(orientacja pionowa). Zwróć wyłącznie JSON zgodny ze schematem."
     );
   }
 
@@ -189,12 +221,59 @@ export class OpenRouterService {
     return (
       `Typ pokoju: ${input.roomType}.\n` +
       `Zdjęcie pokoju: ${input.roomPhoto.url}${roomDescription ? ` — ${roomDescription}` : ""}\n` +
-      `${inspirationLines}${promptBlock}`
+      `${inspirationLines}${promptBlock}\n` +
+      `Parametry obrazu: ${ValidationRules.GENERATED_IMAGE_WIDTH}×${ValidationRules.GENERATED_IMAGE_HEIGHT} (pionowy).`
     );
   }
 
+  private async buildUserMessageWithImages(
+    input: GenerateRoomInspirationInput,
+    roomPhotoBase64: string,
+    inspirationPhotosBase64: { base64: string; description?: string | null }[]
+  ) {
+    const content: { type: string; text?: string; image_url?: { url: string } }[] = [];
+
+    // Add text description
+    const roomDescription = input.roomPhoto.description?.trim();
+    const promptBlock = input.prompt?.trim() ? `\nDodatkowy prompt: ${input.prompt.trim()}` : "";
+
+    let textContent = `Typ pokoju: ${input.roomType}.\n`;
+    textContent += `Zdjęcie pokoju${roomDescription ? `: ${roomDescription}` : ""}\n`;
+
+    inspirationPhotosBase64.forEach((photo, index) => {
+      const description = photo.description?.trim();
+      textContent += `Inspiracja ${index + 1}${description ? `: ${description}` : ""}\n`;
+    });
+
+    textContent += promptBlock;
+    textContent += `\nParametry obrazu: ${ValidationRules.GENERATED_IMAGE_WIDTH}×${ValidationRules.GENERATED_IMAGE_HEIGHT} (pionowy).`;
+    textContent += `\nWygeneruj jedną wizualizację pomysłu urządzenia pokoju na podstawie zdjęcia pokoju i inspiracji.`;
+
+    content.push({ type: "text", text: textContent });
+
+    // Add room photo
+    content.push({
+      type: "image_url",
+      image_url: { url: `data:image/jpeg;base64,${roomPhotoBase64}` },
+    });
+
+    // Add inspiration photos
+    inspirationPhotosBase64.forEach((photo) => {
+      content.push({
+        type: "image_url",
+        image_url: { url: `data:image/jpeg;base64,${photo.base64}` },
+      });
+    });
+
+    return content;
+  }
+
   private buildSimpleUserMessage(input: GenerateSimpleInspirationInput) {
-    return `Typ pokoju: ${input.roomType}.\nOpis: ${input.description.trim()}`;
+    return (
+      `Typ pokoju: ${input.roomType}.\n` +
+      `Opis: ${input.description.trim()}\n` +
+      `Parametry obrazu: ${ValidationRules.GENERATED_IMAGE_WIDTH}×${ValidationRules.GENERATED_IMAGE_HEIGHT} (pionowy).`
+    );
   }
 
   private buildResponseFormat() {
@@ -207,33 +286,43 @@ export class OpenRouterService {
           type: "object",
           properties: {
             bulletPoints: { type: "array", items: { type: "string" } },
-            images: {
-              type: "array",
-              minItems: 2,
-              maxItems: 2,
-              items: {
-                type: "object",
-                properties: {
-                  url: { type: "string" },
-                  position: { type: "number", enum: [1, 2] },
-                },
-                required: ["url", "position"],
-                additionalProperties: false,
-              },
-            },
           },
-          required: ["bulletPoints", "images"],
+          required: ["bulletPoints"],
           additionalProperties: false,
         },
       },
     };
   }
 
-  private async callOpenRouter(payload: Record<string, unknown>, attempt = 0): Promise<OpenRouterChatResponse> {
+  private buildSimpleResponseFormat() {
+    return {
+      type: "json_schema",
+      json_schema: {
+        name: "RoomSimpleVisualization",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            advice: { type: "string" },
+          },
+          required: ["advice"],
+          additionalProperties: false,
+        },
+      },
+    };
+  }
+
+  private async callOpenRouter(payload: Record<string, unknown>): Promise<OpenRouterChatResponse> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
+      console.info("openrouter.request", {
+        model: this.modelName,
+        baseUrl: this.baseUrl,
+        payload,
+      });
+
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
@@ -245,22 +334,15 @@ export class OpenRouterService {
       });
 
       if (!response.ok) {
-        if (this.shouldRetry(response.status) && attempt < 2) {
-          await this.sleep(200 * (attempt + 1));
-          return this.callOpenRouter(payload, attempt + 1);
-        }
-
         const errorBody = await response.text();
         throw new Error(`OpenRouter error ${response.status}: ${errorBody}`);
       }
 
-      return (await response.json()) as OpenRouterChatResponse;
+      const responseBody = (await response.json()) as OpenRouterChatResponse;
+      console.info("openrouter.response", responseBody);
+      return responseBody;
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
-        if (attempt < 2) {
-          await this.sleep(200 * (attempt + 1));
-          return this.callOpenRouter(payload, attempt + 1);
-        }
         throw new Error("OpenRouter request timeout.");
       }
 
@@ -271,53 +353,103 @@ export class OpenRouterService {
   }
 
   private mapResponseToDto(response: OpenRouterChatResponse): OpenRouterResponseSchema {
-    const content = response.choices?.[0]?.message?.content;
+    const message = response.choices?.[0]?.message;
+    const truncatedMessage = message ? this.deepTruncate(message, 100) : null;
 
-    if (!content) {
-      throw new Error("OpenRouter response missing content.");
+    console.log("Mapping OpenRouter response to DTO:", truncatedMessage);
+
+    if (!message) {
+      throw new Error("OpenRouter response missing message.");
     }
 
-    const text = Array.isArray(content)
-      ? content
+    // Parse bullet points from content (if JSON string) or use empty array
+    let bulletPoints: string[] = [];
+    const content = message.content;
+
+    if (content) {
+      let text: string;
+      if (Array.isArray(content)) {
+        text = content
           .map((item) => item.text)
           .filter(Boolean)
-          .join(" ")
-      : content;
+          .join(" ");
+      } else {
+        text = content;
+      }
 
-    const parsed = this.safeParseJson(text);
+      // Remove markdown code block wrapper if present
+      let cleanedText = text.trim();
+      if (cleanedText.startsWith("```json")) {
+        cleanedText = cleanedText.replace(/^```json\n?/, "").replace(/\n?```$/, "");
+      } else if (cleanedText.startsWith("```")) {
+        cleanedText = cleanedText.replace(/^```\n?/, "").replace(/\n?```$/, "");
+      }
 
-    if (!parsed || typeof parsed !== "object") {
-      throw new Error("OpenRouter response is not valid JSON.");
+      const parsed = this.safeParseJson(cleanedText);
+      if (parsed && typeof parsed === "object") {
+        // Try to get bulletPoints or porady field
+        if ("bulletPoints" in parsed) {
+          bulletPoints = (parsed as { bulletPoints: string[] }).bulletPoints;
+        } else if ("porady" in parsed) {
+          bulletPoints = (parsed as { porady: string[] }).porady;
+        }
+      }
     }
 
-    const payload = parsed as OpenRouterResponseSchema;
-
-    if (!Array.isArray(payload.bulletPoints) || !Array.isArray(payload.images)) {
-      throw new Error("OpenRouter response JSON missing required fields.");
+    // Parse images from message.images array
+    if (!message.images || !Array.isArray(message.images) || message.images.length < 1) {
+      throw new Error("OpenRouter response missing images array or has no images.");
     }
 
-    return payload;
+    const images = message.images.map((img, index) => ({
+      url: img.image_url.url,
+      position: (index + 1) as 1 | 2,
+    }));
+
+    return { bulletPoints, images };
   }
 
-  private extractTextFromResponse(response: OpenRouterChatResponse) {
-    const content = response.choices?.[0]?.message?.content;
+  private mapSimpleResponseToDto(response: OpenRouterChatResponse): OpenRouterSimpleResponseSchema {
+    const message = response.choices?.[0]?.message;
+    const truncatedMessage = message ? this.deepTruncate(message, 100) : null;
 
-    if (!content) {
-      throw new Error("OpenRouter response missing content.");
+    console.log("Mapping OpenRouter simple response to DTO:", truncatedMessage);
+
+    if (!message) {
+      throw new Error("OpenRouter response missing message.");
     }
 
-    const text = Array.isArray(content)
-      ? content
-          .map((item) => item.text)
-          .filter(Boolean)
-          .join(" ")
-      : content;
+    // Parse advice from content (if JSON string) or use empty string
+    let advice = "";
+    const content = message.content;
 
-    if (!text || typeof text !== "string") {
-      throw new Error("OpenRouter response content is invalid.");
+    if (content) {
+      const text = Array.isArray(content)
+        ? content
+            .map((item) => item.text)
+            .filter(Boolean)
+            .join(" ")
+        : content;
+
+      const parsed = this.safeParseJson(text);
+      if (parsed && typeof parsed === "object" && "advice" in parsed) {
+        advice = (parsed as { advice: string }).advice;
+      } else if (typeof text === "string") {
+        advice = text;
+      }
     }
 
-    return text.trim();
+    // Parse image from message.images array
+    if (!message.images || !Array.isArray(message.images) || message.images.length < 1) {
+      throw new Error("OpenRouter response missing images array or has no images.");
+    }
+
+    const image = {
+      url: message.images[0].image_url.url,
+      position: 1 as const,
+    };
+
+    return { advice, image };
   }
 
   private safeParseJson(value: string) {
@@ -328,11 +460,57 @@ export class OpenRouterService {
     }
   }
 
-  private shouldRetry(status: number) {
-    return status === 429 || status === 502 || status === 503 || status === 504;
+  private deepTruncate(obj: unknown, maxLength: number, key?: string): unknown {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (typeof obj === "string") {
+      // If this is a "content" field, try to parse as JSON
+      if (key === "content") {
+        // Remove markdown code block wrapper (```json ... ```)
+        let cleanedContent = obj.trim();
+        if (cleanedContent.startsWith("```json")) {
+          cleanedContent = cleanedContent.replace(/^```json\n?/, "").replace(/\n?```$/, "");
+        } else if (cleanedContent.startsWith("```")) {
+          cleanedContent = cleanedContent.replace(/^```\n?/, "").replace(/\n?```$/, "");
+        }
+
+        const parsed = this.safeParseJson(cleanedContent);
+        if (parsed !== null) {
+          return this.deepTruncate(parsed, maxLength);
+        }
+      }
+      return obj.slice(0, maxLength);
+    }
+
+    if (typeof obj === "number" || typeof obj === "boolean") {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this.deepTruncate(item, maxLength));
+    }
+
+    if (typeof obj === "object") {
+      return Object.fromEntries(Object.entries(obj).map(([k, value]) => [k, this.deepTruncate(value, maxLength, k)]));
+    }
+
+    return String(obj).slice(0, maxLength);
   }
 
-  private sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  private async fetchImageAsBase64(url: string): Promise<string> {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString("base64");
+      return base64;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      throw new Error(`Failed to convert image to base64: ${message}`);
+    }
   }
 }

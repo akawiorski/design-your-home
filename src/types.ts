@@ -200,6 +200,7 @@ export interface GeneratedInspirationDTO {
 export interface GenerateSimpleInspirationResponse {
   roomId: string;
   advice: string;
+  image: GeneratedImageDTO;
 }
 
 /**
@@ -251,6 +252,17 @@ export interface OpenRouterResponseSchema {
     url: string;
     position: 1 | 2;
   }[];
+}
+
+/**
+ * Expected OpenRouter JSON response payload for simple generation
+ */
+export interface OpenRouterSimpleResponseSchema {
+  advice: string;
+  image: {
+    url: string;
+    position: 1;
+  };
 }
 
 /**
@@ -372,8 +384,8 @@ export const ValidationRules = {
   MIN_INSPIRATION_PHOTOS: 2,
   MAX_FILE_SIZE_MB: 10,
   IMAGES_PER_INSPIRATION: 2,
-  GENERATED_IMAGE_WIDTH: 1080,
-  GENERATED_IMAGE_HEIGHT: 720,
+  GENERATED_IMAGE_WIDTH: 832,
+  GENERATED_IMAGE_HEIGHT: 1248,
 } as const;
 
 /**

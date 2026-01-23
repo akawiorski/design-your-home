@@ -92,19 +92,26 @@ export async function POST(context: APIContext) {
       return errorResponse(403, "FORBIDDEN", "User does not own this room.");
     }
 
+    console.info("generate.simple.request", {
+      roomId,
+      userId,
+      descriptionLength: parsedBody.data.description.length,
+    });
+
     const apiKey = import.meta.env.OPENROUTER_API_KEY;
+    const modelName = import.meta.env.OPENROUTER_MODEL;
     const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1";
 
-    if (!apiKey) {
+    if (!apiKey || !modelName) {
       return errorResponse(500, "OPENROUTER_NOT_CONFIGURED", "OpenRouter configuration is missing.");
     }
 
     const service = new OpenRouterService({
       apiKey,
       baseUrl,
-      modelName: "deepseek/deepseek-r1-0528:free",
-      defaultParams: { temperature: 0.7, top_p: 0.9, max_tokens: 700 },
-      timeoutMs: 30_000,
+      modelName,
+      defaultParams: { temperature: 0.6, top_p: 0.9, max_tokens: 2000 },
+      timeoutMs: 120_000,
     });
 
     const input: GenerateSimpleInspirationInput = {
@@ -118,6 +125,7 @@ export async function POST(context: APIContext) {
     const response: GenerateSimpleInspirationResponse = {
       roomId,
       advice: result.advice,
+      image: result.image,
     };
 
     return jsonResponse(response, 200);

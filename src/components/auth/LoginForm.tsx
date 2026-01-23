@@ -308,12 +308,19 @@ export default function LoginForm({ redirectTo, supabaseUrl, supabaseKey }: Logi
         {isSubmitting ? "Logowanie..." : "Zaloguj się"}
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground">
-        Nie masz konta?{" "}
-        <a className="font-medium text-primary hover:underline" href="/register">
-          Zarejestruj się
-        </a>
-      </p>
+      <div className="mt-4 text-sm text-center">
+        <p>
+          Nie masz konta?{" "}
+          <a href="/register" className="font-medium text-indigo-600 hover:underline">
+            Utwórz konto
+          </a>
+        </p>
+        <p>
+          <a href="/forgot-password" className="font-medium text-indigo-600 hover:underline">
+            Zapomniałeś hasła?
+          </a>
+        </p>
+      </div>
     </form>
   );
 }

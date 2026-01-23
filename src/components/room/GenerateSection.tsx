@@ -11,6 +11,7 @@ interface GenerateSectionProps {
   isGeneratingDescription: boolean;
   onGenerateDescription: () => void;
   descriptionResult?: string | null;
+  descriptionImageUrl?: string | null;
 }
 
 export function GenerateSection({
@@ -23,6 +24,7 @@ export function GenerateSection({
   isGeneratingDescription,
   onGenerateDescription,
   descriptionResult,
+  descriptionImageUrl,
 }: GenerateSectionProps) {
   return (
     <section className="rounded-xl border border-border/70 bg-card/95 p-5 shadow-sm">
@@ -62,9 +64,17 @@ export function GenerateSection({
           "Generuj opis"
         )}
       </Button>
-      {descriptionResult ? (
+      {descriptionResult || descriptionImageUrl ? (
         <div className="mt-4 rounded-lg border bg-background p-3 text-sm text-foreground">
           <p className="font-medium">Opis aranżacji</p>
+          {descriptionImageUrl ? (
+            <img
+              className="mt-3 w-full rounded-lg border object-cover"
+              src={descriptionImageUrl}
+              alt="Wygenerowana inspiracja"
+              loading="lazy"
+            />
+          ) : null}
           <p className="mt-2 whitespace-pre-line text-muted-foreground">{descriptionResult}</p>
         </div>
       ) : null}
