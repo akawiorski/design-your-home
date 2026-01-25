@@ -5,8 +5,7 @@ import type { AstroCookies } from "astro";
 import type { Database } from "../db/database.types.ts";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
-const supabaseServiceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseKey = import.meta.env.SUPABASE_KEY;
 
 export const createSupabaseClient = (url?: string, key?: string) => {
   if (!url || !key) {
@@ -16,11 +15,11 @@ export const createSupabaseClient = (url?: string, key?: string) => {
   return createClient<Database>(url, key);
 };
 
-export const supabaseClient = createSupabaseClient(supabaseUrl, supabaseAnonKey);
-export const supabaseServiceClient = createSupabaseClient(supabaseUrl, supabaseServiceRoleKey);
+export const supabaseClient = createSupabaseClient(supabaseUrl, supabaseKey);
+export const supabaseServiceClient = createSupabaseClient(supabaseUrl, supabaseKey);
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
-export const isSupabaseServiceConfigured = Boolean(supabaseUrl && supabaseServiceRoleKey);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
+export const isSupabaseServiceConfigured = Boolean(supabaseUrl && supabaseKey);
 
 export type SupabaseClient = BaseSupabaseClient<Database>;
 
@@ -42,18 +41,18 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
 }
 
 export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseKey) {
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.error("[Supabase] Missing configuration:", {
         hasUrl: Boolean(supabaseUrl),
-        hasKey: Boolean(supabaseAnonKey),
+        hasKey: Boolean(supabaseKey),
       });
     }
     return null;
   }
 
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,
     cookies: {
       getAll() {
