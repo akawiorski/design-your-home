@@ -216,9 +216,9 @@ describe("photos.service", () => {
         }),
       } as any);
 
-      await expect(
-        createPendingPhoto(mockSupabase, "photo-1", "room-1", "room", "path/to/photo.jpg")
-      ).rejects.toThrow("Failed to create pending photo: Insert failed");
+      await expect(createPendingPhoto(mockSupabase, "photo-1", "room-1", "room", "path/to/photo.jpg")).rejects.toThrow(
+        "Failed to create pending photo: Insert failed"
+      );
     });
   });
 
