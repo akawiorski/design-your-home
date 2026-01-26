@@ -46,17 +46,24 @@ export function PhotosSection({
     <section
       className="rounded-xl border border-border/70 bg-card/95 p-5 shadow-sm"
       aria-labelledby={`section-${photoType}`}
+      data-testid={`photos-section-${photoType}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 id={`section-${photoType}`} className="text-lg font-semibold">
+          <h2
+            id={`section-${photoType}`}
+            className="text-lg font-semibold"
+            data-testid={`photos-section-${photoType}-title`}
+          >
             {title}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="mt-1 text-sm text-muted-foreground" data-testid={`photos-section-${photoType}-description`}>
+            {description}
+          </p>
         </div>
         <div className="text-right text-sm text-muted-foreground">
-          <div>{countLabel}</div>
-          <div>{limitLabel}</div>
+          <div data-testid={`photos-section-${photoType}-count`}>{countLabel}</div>
+          <div data-testid={`photos-section-${photoType}-limit`}>{limitLabel}</div>
         </div>
       </div>
 
@@ -72,6 +79,7 @@ export function PhotosSection({
           value={descriptionValue}
           maxLength={500}
           onChange={(event) => onDescriptionChange(event.target.value)}
+          data-testid={`photo-description-input-${photoType}`}
         />
         <div className="flex flex-wrap items-center gap-3">
           <input
@@ -87,12 +95,14 @@ export function PhotosSection({
                 event.currentTarget.value = "";
               }
             }}
+            data-testid={`photo-file-input-${photoType}`}
           />
           <Button
             type="button"
             disabled={!canUpload || isUploading}
             aria-label={`Dodaj zdjęcie ${photoType}`}
             onClick={() => inputRef.current?.click()}
+            data-testid={`upload-photo-button-${photoType}`}
           >
             {isUploading ? (
               <span className="flex items-center gap-2">
@@ -103,7 +113,11 @@ export function PhotosSection({
               "Dodaj zdjęcie"
             )}
           </Button>
-          {!canUpload ? <span className="text-xs text-destructive">Limit zdjęć został osiągnięty.</span> : null}
+          {!canUpload ? (
+            <span className="text-xs text-destructive" data-testid={`photos-limit-message-${photoType}`}>
+              Limit zdjęć został osiągnięty.
+            </span>
+          ) : null}
         </div>
       </div>
 

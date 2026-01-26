@@ -2,6 +2,8 @@
 import Layout from "../../layouts/Layout.astro";
 import { RoomPage } from "../../components/room/RoomPage";
 
+export const prerender = false;
+
 const { roomId } = Astro.params;
 ---
 

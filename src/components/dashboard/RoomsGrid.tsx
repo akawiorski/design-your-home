@@ -3,7 +3,7 @@ import { RoomCard } from "@/components/dashboard/RoomCard";
 
 export function RoomsGrid({ rooms }: { rooms: RoomCardVM[] }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="rooms-grid">
       {rooms.map((room) => (
         <RoomCard key={room.id} room={room} />
       ))}

@@ -6,6 +6,7 @@ import type { Database } from "../db/database.types.ts";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_KEY;
+const supabaseServiceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const createSupabaseClient = (url?: string, key?: string) => {
   if (!url || !key) {
@@ -16,10 +17,10 @@ export const createSupabaseClient = (url?: string, key?: string) => {
 };
 
 export const supabaseClient = createSupabaseClient(supabaseUrl, supabaseKey);
-export const supabaseServiceClient = createSupabaseClient(supabaseUrl, supabaseKey);
+export const supabaseServiceClient = createSupabaseClient(supabaseUrl, supabaseServiceRoleKey);
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
-export const isSupabaseServiceConfigured = Boolean(supabaseUrl && supabaseKey);
+export const isSupabaseServiceConfigured = Boolean(supabaseUrl && supabaseServiceRoleKey);
 
 export type SupabaseClient = BaseSupabaseClient<Database>;
 

@@ -126,9 +126,9 @@ export function CreateRoomDialog({ open, onOpenChange, onCreated }: CreateRoomDi
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent>
+      <DialogContent data-testid="create-room-dialog">
         <DialogHeader>
-          <DialogTitle>Utwórz pokój</DialogTitle>
+          <DialogTitle data-testid="create-room-dialog-title">Utwórz pokój</DialogTitle>
           <DialogDescription>Wybierz typ pomieszczenia, aby rozpocząć pracę.</DialogDescription>
         </DialogHeader>
 
@@ -138,7 +138,10 @@ export function CreateRoomDialog({ open, onOpenChange, onCreated }: CreateRoomDi
           </label>
 
           {roomTypesState === "loading" ? (
-            <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+            <div
+              className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-sm text-muted-foreground"
+              data-testid="room-types-loading"
+            >
               <Spinner size="sm" />
               <span aria-live="polite">Ładowanie typów...</span>
             </div>
@@ -158,6 +161,7 @@ export function CreateRoomDialog({ open, onOpenChange, onCreated }: CreateRoomDi
                 const parsed = Number(raw);
                 setSelectedRoomTypeId(Number.isFinite(parsed) ? parsed : null);
               }}
+              data-testid="room-type-select"
             >
               <option value="">Wybierz...</option>
               {sortedRoomTypes.map((rt) => (
@@ -169,7 +173,7 @@ export function CreateRoomDialog({ open, onOpenChange, onCreated }: CreateRoomDi
           ) : null}
 
           {formError ? (
-            <p className="text-sm text-destructive" role="alert">
+            <p className="text-sm text-destructive" role="alert" data-testid="create-room-error">
               {formError}
             </p>
           ) : null}
@@ -181,10 +185,17 @@ export function CreateRoomDialog({ open, onOpenChange, onCreated }: CreateRoomDi
             variant="outline"
             onClick={() => handleOpenChange(false)}
             disabled={submitState === "loading"}
+            data-testid="create-room-cancel-button"
           >
             Anuluj
           </Button>
-          <Button type="button" onClick={submit} disabled={!canSubmit} aria-busy={submitState === "loading"}>
+          <Button
+            type="button"
+            onClick={submit}
+            disabled={!canSubmit}
+            aria-busy={submitState === "loading"}
+            data-testid="create-room-submit-button"
+          >
             {submitState === "loading" ? (
               <span className="inline-flex items-center gap-2">
                 <Spinner size="sm" className="text-primary-foreground" />
