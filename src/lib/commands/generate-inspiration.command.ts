@@ -3,7 +3,7 @@ import type { GenerateInspirationCommand, GeneratedInspirationDTO } from "../../
 import { ValidationRules } from "../../types";
 import { getRoomWithTypeById } from "../services/rooms.service";
 import { getRoomPhotos } from "../services/photos.service";
-import { AIServiceFactory, mapAIErrorToResponse } from "../factories/ai-service.factory";
+import { createAIServiceForInspiration, mapAIErrorToResponse } from "../factories/ai-service.factory";
 import { errorResponse, jsonResponse } from "../api/response.helpers";
 
 /**
@@ -58,7 +58,7 @@ export class GenerateInspirationCommand {
       }
 
       // Step 3: Create AI service and generate inspiration
-      const aiService = AIServiceFactory.createForInspiration();
+      const aiService = createAIServiceForInspiration();
 
       const result = await aiService.generateRoomInspiration({
         roomId: this.roomId,

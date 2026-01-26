@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { GenerateSimpleInspirationResponse } from "../../types";
 import { getRoomWithTypeById } from "../services/rooms.service";
-import { AIServiceFactory, mapAIErrorToResponse } from "../factories/ai-service.factory";
+import { createAIServiceForSimpleAdvice, mapAIErrorToResponse } from "../factories/ai-service.factory";
 import { errorResponse, jsonResponse } from "../api/response.helpers";
 
 /**
@@ -45,7 +45,7 @@ export class GenerateSimpleAdviceCommand {
       this.logRequest();
 
       // Step 2: Create AI service and generate advice
-      const aiService = AIServiceFactory.createForSimpleAdvice();
+      const aiService = createAIServiceForSimpleAdvice();
 
       const result = await aiService.generateSimpleAdvice({
         roomId: this.roomId,

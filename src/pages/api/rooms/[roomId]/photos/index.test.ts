@@ -100,9 +100,7 @@ describe("POST /api/rooms/{roomId}/photos", () => {
       createdAt: "2026-01-11T10:00:00Z",
     };
 
-    confirmPhotoUploadExecuteMock.mockResolvedValue(
-      new Response(JSON.stringify(responsePhoto), { status: 201 })
-    );
+    confirmPhotoUploadExecuteMock.mockResolvedValue(new Response(JSON.stringify(responsePhoto), { status: 201 }));
 
     const response = await POST(context);
 

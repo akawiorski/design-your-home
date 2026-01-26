@@ -3,73 +3,67 @@ import { AI_CONFIG } from "../config/ai.config";
 import { errorResponse } from "../api/response.helpers";
 
 /**
- * Factory for creating AI service instances
- * Implements Factory Pattern with configuration validation
+ * Create OpenRouter service instance with validation
+ * @param modelName - Optional model name override
+ * @returns Configured OpenRouter service
  */
-export class AIServiceFactory {
-  /**
-   * Create OpenRouter service instance with validation
-   * @param modelName - Optional model name override
-   * @returns Configured OpenRouter service
-   */
-  static create(modelName?: string): OpenRouterService {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-    const configuredModelName = modelName ?? import.meta.env.OPENROUTER_MODEL;
-    const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
+export function createAIService(modelName?: string): OpenRouterService {
+  const apiKey = import.meta.env.OPENROUTER_API_KEY;
+  const configuredModelName = modelName ?? import.meta.env.OPENROUTER_MODEL;
+  const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
 
-    if (!apiKey || !configuredModelName) {
-      throw new AIConfigurationError("OpenRouter API key or model not configured");
-    }
-
-    return new OpenRouterService({
-      apiKey,
-      baseUrl,
-      modelName: configuredModelName,
-      defaultParams: AI_CONFIG.DEFAULT_PARAMS,
-      timeoutMs: AI_CONFIG.TIMEOUT_MS,
-    });
+  if (!apiKey || !configuredModelName) {
+    throw new AIConfigurationError("OpenRouter API key or model not configured");
   }
 
-  /**
-   * Create service for inspiration generation (uses specific model)
-   */
-  static createForInspiration(): OpenRouterService {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-    const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
+  return new OpenRouterService({
+    apiKey,
+    baseUrl,
+    modelName: configuredModelName,
+    defaultParams: AI_CONFIG.DEFAULT_PARAMS,
+    timeoutMs: AI_CONFIG.TIMEOUT_MS,
+  });
+}
 
-    if (!apiKey) {
-      throw new AIConfigurationError("OpenRouter API key not configured");
-    }
+/**
+ * Create service for inspiration generation (uses specific model)
+ */
+export function createAIServiceForInspiration(): OpenRouterService {
+  const apiKey = import.meta.env.OPENROUTER_API_KEY;
+  const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
 
-    return new OpenRouterService({
-      apiKey,
-      baseUrl,
-      modelName: AI_CONFIG.INSPIRATION_MODEL,
-      defaultParams: AI_CONFIG.DEFAULT_PARAMS,
-      timeoutMs: AI_CONFIG.TIMEOUT_MS,
-    });
+  if (!apiKey) {
+    throw new AIConfigurationError("OpenRouter API key not configured");
   }
 
-  /**
-   * Create service for simple advice generation
-   */
-  static createForSimpleAdvice(): OpenRouterService {
-    const apiKey = import.meta.env.OPENROUTER_API_KEY;
-    const modelName = import.meta.env.OPENROUTER_MODEL;
-    const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
+  return new OpenRouterService({
+    apiKey,
+    baseUrl,
+    modelName: AI_CONFIG.INSPIRATION_MODEL,
+    defaultParams: AI_CONFIG.DEFAULT_PARAMS,
+    timeoutMs: AI_CONFIG.TIMEOUT_MS,
+  });
+}
 
-    if (!apiKey || !modelName) {
-      throw new AIConfigurationError("OpenRouter configuration is missing");
-    }
+/**
+ * Create service for simple advice generation
+ */
+export function createAIServiceForSimpleAdvice(): OpenRouterService {
+  const apiKey = import.meta.env.OPENROUTER_API_KEY;
+  const modelName = import.meta.env.OPENROUTER_MODEL;
+  const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
 
-    return new OpenRouterService({
-      apiKey,
-      baseUrl,
-      modelName,
-      defaultParams: AI_CONFIG.SIMPLE_ADVICE_PARAMS,
-      timeoutMs: AI_CONFIG.TIMEOUT_MS,
-    });
+  if (!apiKey || !modelName) {
+    throw new AIConfigurationError("OpenRouter configuration is missing");
   }
+
+  return new OpenRouterService({
+    apiKey,
+    baseUrl,
+    modelName,
+    defaultParams: AI_CONFIG.SIMPLE_ADVICE_PARAMS,
+    timeoutMs: AI_CONFIG.TIMEOUT_MS,
+  });
 }
 
 /**

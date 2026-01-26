@@ -41,14 +41,14 @@ describe("rooms.service", () => {
               single: mockRoomTypeSingle,
             }),
           }),
-        } as any)
+        } as ReturnType<typeof mockSupabase.from>)
         .mockReturnValueOnce({
           insert: vi.fn().mockReturnValue({
             select: vi.fn().mockReturnValue({
               single: mockRoomSingle,
             }),
           }),
-        } as any);
+        } as ReturnType<typeof mockSupabase.from>);
 
       const result = await createRoom(mockSupabase, "user-1", 1);
 
@@ -77,7 +77,7 @@ describe("rooms.service", () => {
             single: mockRoomTypeSingle,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(createRoom(mockSupabase, "user-1", 999)).rejects.toThrow("Room type with id 999 not found");
     });
@@ -102,14 +102,14 @@ describe("rooms.service", () => {
               single: mockRoomTypeSingle,
             }),
           }),
-        } as any)
+        } as ReturnType<typeof mockSupabase.from>)
         .mockReturnValueOnce({
           insert: vi.fn().mockReturnValue({
             select: vi.fn().mockReturnValue({
               single: mockRoomSingle,
             }),
           }),
-        } as any);
+        } as ReturnType<typeof mockSupabase.from>);
 
       await expect(createRoom(mockSupabase, "user-1", 1)).rejects.toThrow("Failed to create room: Insert failed");
     });
@@ -143,7 +143,7 @@ describe("rooms.service", () => {
               }),
             }),
           }),
-        } as any)
+        } as ReturnType<typeof mockSupabase.from>)
         .mockReturnValueOnce({
           select: vi.fn().mockReturnValue({
             in: vi.fn().mockResolvedValue({
@@ -151,7 +151,7 @@ describe("rooms.service", () => {
               error: null,
             }),
           }),
-        } as any);
+        } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getRoomsByUserId(mockSupabase, "user-1");
 
@@ -180,7 +180,7 @@ describe("rooms.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getRoomsByUserId(mockSupabase, "user-1");
 
@@ -197,7 +197,7 @@ describe("rooms.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(getRoomsByUserId(mockSupabase, "user-1")).rejects.toThrow("Failed to fetch rooms: Database error");
     });
@@ -226,7 +226,7 @@ describe("rooms.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getRoomWithTypeById(mockSupabase, "room-1");
 
@@ -257,7 +257,7 @@ describe("rooms.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getRoomWithTypeById(mockSupabase, "room-1");
 
@@ -278,7 +278,7 @@ describe("rooms.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(getRoomWithTypeById(mockSupabase, "room-1")).rejects.toThrow("Failed to fetch room: Database error");
     });

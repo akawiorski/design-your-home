@@ -31,7 +31,7 @@ describe("room-types.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: mockSelect,
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getAllRoomTypes(mockSupabase);
 
@@ -57,7 +57,7 @@ describe("room-types.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: mockSelect,
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getAllRoomTypes(mockSupabase);
 
@@ -76,7 +76,7 @@ describe("room-types.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: mockSelect,
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(getAllRoomTypes(mockSupabase)).rejects.toThrow("Failed to fetch room types: Database error");
     });
@@ -93,7 +93,7 @@ describe("room-types.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         select: mockSelect,
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getAllRoomTypes(mockSupabase);
 

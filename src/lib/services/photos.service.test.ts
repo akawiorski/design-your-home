@@ -31,7 +31,7 @@ describe("photos.service", () => {
             is: mockIs,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getPhotoCountByRoomId(mockSupabase, "room-1");
 
@@ -51,7 +51,7 @@ describe("photos.service", () => {
             is: mockIs,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getPhotoCountByRoomId(mockSupabase, "room-1");
 
@@ -70,7 +70,7 @@ describe("photos.service", () => {
             is: mockIs,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(getPhotoCountByRoomId(mockSupabase, "room-1")).rejects.toThrow(
         "Failed to fetch photo count: Database error"
@@ -95,7 +95,7 @@ describe("photos.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await verifyRoomOwnership(mockSupabase, "room-1", "user-1");
 
@@ -118,7 +118,7 @@ describe("photos.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await verifyRoomOwnership(mockSupabase, "room-1", "user-1");
 
@@ -141,7 +141,7 @@ describe("photos.service", () => {
             }),
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(verifyRoomOwnership(mockSupabase, "room-1", "user-1")).rejects.toThrow(
         "Failed to verify room ownership: Database error"
@@ -194,7 +194,7 @@ describe("photos.service", () => {
             single: mockSingle,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await createPendingPhoto(mockSupabase, "photo-1", "room-1", "room", "path/to/photo.jpg");
 
@@ -214,7 +214,7 @@ describe("photos.service", () => {
             single: mockSingle,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(createPendingPhoto(mockSupabase, "photo-1", "room-1", "room", "path/to/photo.jpg")).rejects.toThrow(
         "Failed to create pending photo: Insert failed"
@@ -243,7 +243,7 @@ describe("photos.service", () => {
             is: mockIs,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getPhotoCountsByType(mockSupabase, "room-1");
 
@@ -266,7 +266,7 @@ describe("photos.service", () => {
             is: mockIs,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       const result = await getPhotoCountsByType(mockSupabase, "room-1");
 
@@ -289,7 +289,7 @@ describe("photos.service", () => {
             is: mockIs,
           }),
         }),
-      } as any);
+      } as ReturnType<typeof mockSupabase.from>);
 
       await expect(getPhotoCountsByType(mockSupabase, "room-1")).rejects.toThrow(
         "Failed to fetch photo counts: Database error"
