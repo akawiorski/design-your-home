@@ -1,7 +1,6 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
 
-import type { GetUploadUrlCommand } from "../../../../../types";
 import { DEFAULT_USER_ID } from "../../../../../db/supabase.client";
 import { errorResponse, commonErrors } from "../../../../../lib/api/response.helpers";
 import { validateRoomId, validateAuth } from "../../../../../lib/api/validators";
