@@ -2,7 +2,6 @@ import type { APIContext } from "astro";
 import { z } from "zod";
 
 import type { ErrorResponse, RoomWithPhotosDTO } from "../../../../types";
-import { DEFAULT_USER_ID } from "../../../../db/supabase.client";
 import { getRoomWithTypeById } from "../../../../lib/services/rooms.service";
 import { getPhotoCountsByType, getRoomPhotos } from "../../../../lib/services/photos.service";
 
@@ -62,7 +61,7 @@ export async function GET(context: APIContext) {
 
   const { roomId } = parsedParams.data;
 
-  const userId = locals.session?.user?.id ?? DEFAULT_USER_ID;
+  const userId = locals.user?.id;
 
   if (!userId) {
     return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");

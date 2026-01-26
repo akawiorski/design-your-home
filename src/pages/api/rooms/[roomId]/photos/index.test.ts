@@ -2,13 +2,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RoomPhotoDTO } from "../../../../../types";
 
-const verifyRoomOwnershipMock = vi.fn();
-const confirmPhotoUploadMock = vi.fn();
+const listRoomPhotosExecuteMock = vi.fn();
+const confirmPhotoUploadExecuteMock = vi.fn();
+
+// Mock Command classes
+vi.mock("../../../../../lib/commands/list-room-photos.command", () => ({
+  ListRoomPhotosCommand: vi.fn().mockImplementation(() => ({
+    execute: listRoomPhotosExecuteMock,
+  })),
+}));
+
+vi.mock("../../../../../lib/commands/confirm-photo-upload.command", () => ({
+  ConfirmPhotoUploadCommand: vi.fn().mockImplementation(() => ({
+    execute: confirmPhotoUploadExecuteMock,
+  })),
+}));
 
 const buildContext = (overrides?: Partial<any>) =>
   ({
     locals: {
       supabase: {},
+      user: { id: "user-123" },
     },
     params: {
       roomId: "d290f1ee-6c54-4b01-90e6-d701748f0851",
@@ -25,17 +39,8 @@ describe("POST /api/rooms/{roomId}/photos", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    verifyRoomOwnershipMock.mockReset();
-    confirmPhotoUploadMock.mockReset();
-
-    vi.doMock("../../../../../db/supabase.client", () => ({
-      DEFAULT_USER_ID: "user-123",
-    }));
-
-    vi.doMock("../../../../../lib/services/photos.service", () => ({
-      verifyRoomOwnership: verifyRoomOwnershipMock,
-      confirmPhotoUpload: confirmPhotoUploadMock,
-    }));
+    listRoomPhotosExecuteMock.mockReset();
+    confirmPhotoUploadExecuteMock.mockReset();
 
     ({ POST } = await import("./index"));
   });
@@ -45,7 +50,7 @@ describe("POST /api/rooms/{roomId}/photos", () => {
 
     expect(response.status).toBe(400);
     const body = await response.json();
-    expect(body.error.code).toBe("INVALID_PARAMS");
+    expect(body.error.code).toBe("VALIDATION_ERROR");
   });
 
   it("returns 400 when body is invalid", async () => {
@@ -59,7 +64,7 @@ describe("POST /api/rooms/{roomId}/photos", () => {
     expect(body.error.code).toBe("VALIDATION_ERROR");
   });
 
-  it("returns 404 when room is not owned", async () => {
+  it("returns 404 when command returns not found", async () => {
     const context = buildContext();
     context.request.json.mockResolvedValue({
       photoId: "b6f5b6b5-2d4d-4e88-a3da-1a1d0c2fd031",
@@ -67,31 +72,13 @@ describe("POST /api/rooms/{roomId}/photos", () => {
       photoType: "room",
     });
 
-    verifyRoomOwnershipMock.mockResolvedValue(false);
+    confirmPhotoUploadExecuteMock.mockResolvedValue(
+      new Response(JSON.stringify({ error: { code: "NOT_FOUND" } }), { status: 404 })
+    );
 
     const response = await POST(context);
 
     expect(response.status).toBe(404);
-    const body = await response.json();
-    expect(body.error.code).toBe("NOT_FOUND");
-  });
-
-  it("returns 404 when photo record is missing", async () => {
-    const context = buildContext();
-    context.request.json.mockResolvedValue({
-      photoId: "b6f5b6b5-2d4d-4e88-a3da-1a1d0c2fd031",
-      storagePath: "users/user-123/rooms/room-1/room/a.jpg",
-      photoType: "room",
-    });
-
-    verifyRoomOwnershipMock.mockResolvedValue(true);
-    confirmPhotoUploadMock.mockResolvedValue(null);
-
-    const response = await POST(context);
-
-    expect(response.status).toBe(404);
-    const body = await response.json();
-    expect(body.error.code).toBe("NOT_FOUND");
   });
 
   it("returns 201 with created photo", async () => {
@@ -103,8 +90,6 @@ describe("POST /api/rooms/{roomId}/photos", () => {
       description: "Kitchen view",
     });
 
-    verifyRoomOwnershipMock.mockResolvedValue(true);
-
     const responsePhoto: RoomPhotoDTO = {
       id: "b6f5b6b5-2d4d-4e88-a3da-1a1d0c2fd031",
       roomId: "d290f1ee-6c54-4b01-90e6-d701748f0851",
@@ -115,7 +100,9 @@ describe("POST /api/rooms/{roomId}/photos", () => {
       createdAt: "2026-01-11T10:00:00Z",
     };
 
-    confirmPhotoUploadMock.mockResolvedValue(responsePhoto);
+    confirmPhotoUploadExecuteMock.mockResolvedValue(
+      new Response(JSON.stringify(responsePhoto), { status: 201 })
+    );
 
     const response = await POST(context);
 
@@ -132,23 +119,14 @@ describe("POST /api/rooms/{roomId}/photos - unauthenticated", () => {
   beforeEach(async () => {
     vi.resetModules();
 
-    verifyRoomOwnershipMock.mockReset();
-    confirmPhotoUploadMock.mockReset();
-
-    vi.doMock("../../../../../db/supabase.client", () => ({
-      DEFAULT_USER_ID: "",
-    }));
-
-    vi.doMock("../../../../../lib/services/photos.service", () => ({
-      verifyRoomOwnership: verifyRoomOwnershipMock,
-      confirmPhotoUpload: confirmPhotoUploadMock,
-    }));
+    listRoomPhotosExecuteMock.mockReset();
+    confirmPhotoUploadExecuteMock.mockReset();
 
     ({ POST } = await import("./index"));
   });
 
   it("returns 401 when authentication is missing", async () => {
-    const context = buildContext();
+    const context = buildContext({ locals: { supabase: {}, user: null } });
     context.request.json.mockResolvedValue({
       photoId: "b6f5b6b5-2d4d-4e88-a3da-1a1d0c2fd031",
       storagePath: "users/user-123/rooms/room-1/room/a.jpg",

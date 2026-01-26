@@ -10,6 +10,9 @@ const buildContext = (overrides?: Partial<any>) =>
   ({
     locals: {
       supabase: {},
+      user: {
+        id: "user-123",
+      },
     },
     params: {
       roomId: "d290f1ee-6c54-4b01-90e6-d701748f0851",
@@ -26,10 +29,6 @@ describe("GET /api/rooms/{roomId}", () => {
     getRoomWithTypeByIdMock.mockReset();
     getRoomPhotosMock.mockReset();
     getPhotoCountsByTypeMock.mockReset();
-
-    vi.doMock("../../../../db/supabase.client", () => ({
-      DEFAULT_USER_ID: "user-123",
-    }));
 
     vi.doMock("../../../../lib/services/rooms.service", () => ({
       getRoomWithTypeById: getRoomWithTypeByIdMock,
@@ -133,10 +132,6 @@ describe("GET /api/rooms/{roomId} - unauthenticated", () => {
     getRoomPhotosMock.mockReset();
     getPhotoCountsByTypeMock.mockReset();
 
-    vi.doMock("../../../../db/supabase.client", () => ({
-      DEFAULT_USER_ID: "",
-    }));
-
     vi.doMock("../../../../lib/services/rooms.service", () => ({
       getRoomWithTypeById: getRoomWithTypeByIdMock,
     }));
@@ -150,7 +145,7 @@ describe("GET /api/rooms/{roomId} - unauthenticated", () => {
   });
 
   it("returns 401 when authentication is missing", async () => {
-    const response = await GET(buildContext());
+    const response = await GET(buildContext({ locals: { supabase: {}, user: null } }));
 
     expect(response.status).toBe(401);
     const body = await response.json();

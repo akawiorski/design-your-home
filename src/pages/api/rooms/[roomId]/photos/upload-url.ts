@@ -1,43 +1,13 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
 
-import type { ErrorResponse, GetUploadUrlCommand, GetUploadUrlResponse } from "../../../../../types";
-import { ValidationRules } from "../../../../../types";
+import type { GetUploadUrlCommand } from "../../../../../types";
 import { DEFAULT_USER_ID } from "../../../../../db/supabase.client";
-import {
-  verifyRoomOwnership,
-  getPhotoCountByRoomId,
-  generateStoragePath,
-  createPendingPhoto,
-  generatePresignedUploadUrl,
-} from "../../../../../lib/services/photos.service";
+import { errorResponse, commonErrors } from "../../../../../lib/api/response.helpers";
+import { validateRoomId, validateAuth } from "../../../../../lib/api/validators";
+import { GenerateUploadUrlCommand } from "../../../../../lib/commands/generate-upload-url.command";
 
 export const prerender = false;
-
-/**
- * Helper function to create JSON response
- */
-const jsonResponse = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-/**
- * Helper function to create error response
- */
-const errorResponse = (status: number, code: string, message: string, details?: Record<string, unknown>) => {
-  const body: ErrorResponse = {
-    error: {
-      code,
-      message,
-      details,
-      timestamp: new Date().toISOString(),
-    },
-  };
-
-  return jsonResponse(body, status);
-};
 
 /**
  * Zod schema for request body validation
@@ -93,102 +63,41 @@ export async function POST(context: APIContext) {
   const { locals, params } = context;
   const supabase = locals.supabaseAdmin ?? locals.supabase;
 
+  // Validate Supabase client
   if (!supabase) {
-    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+    return commonErrors.supabaseNotConfigured();
   }
 
-  // Extract roomId from path parameters
-  const { roomId } = params;
-
-  // Validate roomId is provided
-  if (!roomId) {
-    return errorResponse(400, "VALIDATION_ERROR", "roomId is required in the URL path.");
+  // Validate roomId
+  const roomIdValidation = validateRoomId(params.roomId);
+  if (!roomIdValidation.valid) {
+    return roomIdValidation.error;
   }
-
-  // Validate roomId is a valid UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(roomId)) {
-    return errorResponse(400, "VALIDATION_ERROR", "roomId must be a valid UUID.");
-  }
-
-  const userId = locals.session?.user?.id ?? DEFAULT_USER_ID;
 
   // Validate authentication
-  if (!userId) {
-    return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");
+  const authValidation = validateAuth(locals.session?.user?.id ?? DEFAULT_USER_ID);
+  if (!authValidation.valid) {
+    return authValidation.error;
   }
 
+  // Parse and validate request body
+  let rawBody: unknown;
   try {
-    // Parse and validate request body
-    const rawBody = await context.request.json();
-    const validationResult = requestBodySchema.safeParse(rawBody);
-
-    if (!validationResult.success) {
-      const firstError = validationResult.error.errors[0];
-      return errorResponse(400, "VALIDATION_ERROR", firstError.message, {
-        field: firstError.path.join("."),
-        issues: validationResult.error.errors,
-      });
-    }
-
-    const body: GetUploadUrlCommand = validationResult.data;
-
-    // Step 1: Verify room ownership
-    const isOwner = await verifyRoomOwnership(supabase, roomId, userId);
-
-    if (!isOwner) {
-      // Room either doesn't exist or user doesn't own it
-      // Return 404 for security (don't reveal if room exists)
-      return errorResponse(404, "NOT_FOUND", "Room not found.");
-    }
-
-    // Step 2: Check photo count limit
-    const currentPhotoCount = await getPhotoCountByRoomId(supabase, roomId);
-
-    if (currentPhotoCount >= ValidationRules.MAX_PHOTOS_PER_ROOM) {
-      return errorResponse(
-        413,
-        "PAYLOAD_TOO_LARGE",
-        `Room has reached the maximum limit of ${ValidationRules.MAX_PHOTOS_PER_ROOM} photos.`,
-        {
-          currentCount: currentPhotoCount,
-          maxCount: ValidationRules.MAX_PHOTOS_PER_ROOM,
-        }
-      );
-    }
-
-    // Step 3: Generate storage path
-    const storagePath = generateStoragePath(userId, roomId, body.photoType, body.fileName);
-
-    // Step 4: Generate photo ID (will be used to create pending record)
-    const photoId = crypto.randomUUID();
-
-    // Step 5: Create pending photo record in database
-    await createPendingPhoto(supabase, photoId, roomId, body.photoType, storagePath);
-
-    // Step 6: Generate presigned upload URL
-    const bucketName = "room-photos"; // Supabase Storage bucket name
-    const uploadUrl = await generatePresignedUploadUrl(supabase, bucketName, storagePath);
-
-    // Step 7: Calculate expiration time (1 hour from now)
-    const expiresAt = new Date(Date.now() + 3600 * 1000).toISOString();
-
-    // Step 8: Prepare response
-    const response: GetUploadUrlResponse = {
-      uploadUrl,
-      storagePath,
-      photoId,
-      expiresAt,
-    };
-
-    return jsonResponse(response, 200);
+    rawBody = await context.request.json();
   } catch (error) {
-    // Log error for debugging (in production, use proper logging service)
-    // TODO: Implement proper logging service
+    return commonErrors.invalidJson(error instanceof Error ? error : undefined);
+  }
 
-    // Return generic error response
-    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while generating upload URL.", {
-      message: error instanceof Error ? error.message : "Unknown error",
+  const validationResult = requestBodySchema.safeParse(rawBody);
+  if (!validationResult.success) {
+    const firstError = validationResult.error.errors[0];
+    return errorResponse(400, "VALIDATION_ERROR", firstError.message, {
+      field: firstError.path.join("."),
+      issues: validationResult.error.errors,
     });
   }
+
+  // Execute command
+  const command = new GenerateUploadUrlCommand(supabase, roomIdValidation.roomId, authValidation.userId);
+  return command.execute(validationResult.data);
 }

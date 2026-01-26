@@ -43,6 +43,6 @@ export class RoomCardPage {
   }
 
   async waitForNavigation() {
-    await Promise.all([this.page.waitForURL(/\/rooms\/\d+/), this.card.click()]);
+    await Promise.all([this.page.waitForURL(/\/rooms\/[a-f0-9-]+/), this.card.click()]);
   }
 }

@@ -1,35 +1,13 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
 
-import type { ErrorResponse, RoomsListResponse, CreateRoomCommand, RoomDTO } from "../../../types";
-import { getRoomsByUserId, createRoom } from "../../../lib/services/rooms.service";
+import type { CreateRoomCommand as CreateRoomCommandType } from "../../../types";
+import { errorResponse, commonErrors } from "../../../lib/api/response.helpers";
+import { validateAuth } from "../../../lib/api/validators";
+import { ListRoomsCommand } from "../../../lib/commands/list-rooms.command";
+import { CreateRoomCommand } from "../../../lib/commands/create-room.command";
 
 export const prerender = false;
-
-/**
- * Helper function to create JSON response
- */
-const jsonResponse = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-
-/**
- * Helper function to create error response
- */
-const errorResponse = (status: number, code: string, message: string, details?: Record<string, unknown>) => {
-  const body: ErrorResponse = {
-    error: {
-      code,
-      message,
-      details,
-      timestamp: new Date().toISOString(),
-    },
-  };
-
-  return jsonResponse(body, status);
-};
 
 const bodySchema = z.object({
   roomTypeId: z.number().int().positive(),
@@ -54,34 +32,20 @@ export async function GET(context: APIContext) {
   const { locals } = context;
   const supabase = locals.supabase;
 
+  // Validate Supabase client
   if (!supabase) {
-    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+    return commonErrors.supabaseNotConfigured();
   }
-
-  // Get user ID from authenticated session
-  const userId = locals.user?.id;
 
   // Validate authentication
-  if (!userId) {
-    return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");
+  const authValidation = validateAuth(locals.user?.id);
+  if (!authValidation.valid) {
+    return authValidation.error;
   }
 
-  try {
-    // Fetch rooms using service layer
-    const rooms = await getRoomsByUserId(supabase, userId);
-
-    // Prepare response
-    const response: RoomsListResponse = {
-      rooms,
-    };
-
-    return jsonResponse(response, 200);
-  } catch (error) {
-    // Return generic error response
-    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while fetching rooms.", {
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
+  // Execute command
+  const command = new ListRoomsCommand(supabase, authValidation.userId);
+  return command.execute();
 }
 
 /**
@@ -120,14 +84,23 @@ export async function POST(context: APIContext) {
     return errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource.");
   }
 
+  // Validate Supabase client
+  if (!supabase) {
+    return commonErrors.supabaseNotConfigured();
+  }
+
+  // Validate authentication
+  const authValidation = validateAuth(locals.user?.id);
+  if (!authValidation.valid) {
+    return authValidation.error;
+  }
+
   // Parse and validate request body
-  let body: CreateRoomCommand;
+  let body: CreateRoomCommandType;
   try {
     body = await request.json();
   } catch (error) {
-    return errorResponse(400, "INVALID_JSON", "Request body must be valid JSON.", {
-      message: error instanceof Error ? error.message : "Invalid JSON",
-    });
+    return commonErrors.invalidJson(error instanceof Error ? error : undefined);
   }
 
   const validationResult = bodySchema.safeParse(body);
@@ -137,31 +110,7 @@ export async function POST(context: APIContext) {
     });
   }
 
-  const { roomTypeId } = validationResult.data;
-
-  try {
-    // Create room using service layer
-    const room: RoomDTO = await createRoom(supabase, userId, roomTypeId);
-
-    return jsonResponse(room, 201);
-  } catch (error) {
-    // Check if error is about room type not found
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    if (errorMessage.includes("not found")) {
-      return errorResponse(404, "NOT_FOUND", `Room type with id ${roomTypeId} not found.`, {
-        roomTypeId,
-      });
-    }
-
-    if (errorMessage.toLowerCase().includes("row-level security")) {
-      return errorResponse(403, "FORBIDDEN", "Insufficient permissions to create room.", {
-        message: errorMessage,
-      });
-    }
-
-    // Return generic error response
-    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while creating room.", {
-      message: errorMessage,
-    });
-  }
+  // Execute command
+  const command = new CreateRoomCommand(supabase, authValidation.userId, validationResult.data.roomTypeId);
+  return command.execute();
 }

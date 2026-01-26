@@ -48,7 +48,6 @@ describe("CreateRoomDialog", () => {
     photoCount: { room: 0, inspiration: 0 },
     createdAt: "2026-01-25T10:00:00.000Z",
     updatedAt: "2026-01-25T10:00:00.000Z",
-    photos: [],
   };
 
   afterEach(() => {
