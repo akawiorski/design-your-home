@@ -13,6 +13,19 @@ if (!isCI && existsSync(envTestPath)) {
   });
 }
 
+const requiredEnvVars = [
+  "SUPABASE_URL",
+  "SUPABASE_KEY",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "OPENROUTER_API_KEY",
+  "OPENROUTER_MODEL",
+];
+
+const missingEnvVars = requiredEnvVars.filter((name) => !process.env[name]);
+if (missingEnvVars.length > 0) {
+  throw new Error(`Missing required environment variables: ${missingEnvVars.join(", ")}`);
+}
+
 export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 60_000,
