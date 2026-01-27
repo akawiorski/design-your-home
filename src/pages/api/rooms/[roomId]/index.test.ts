@@ -1,3 +1,5 @@
+import type { APIContext } from "astro";
+import type { SupabaseClient } from "../../../../db/supabase.client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RoomPhotoDTO } from "../../../../types";
@@ -6,10 +8,10 @@ const getRoomWithTypeByIdMock = vi.fn();
 const getRoomPhotosMock = vi.fn();
 const getPhotoCountsByTypeMock = vi.fn();
 
-const buildContext = (overrides?: Partial<any>) =>
+const buildContext = (overrides: Partial<APIContext> = {}): APIContext =>
   ({
     locals: {
-      supabase: {},
+      supabase: {} as SupabaseClient,
       user: {
         id: "user-123",
       },
@@ -18,10 +20,10 @@ const buildContext = (overrides?: Partial<any>) =>
       roomId: "d290f1ee-6c54-4b01-90e6-d701748f0851",
     },
     ...overrides,
-  }) as any;
+  }) as APIContext;
 
 describe("GET /api/rooms/{roomId}", () => {
-  let GET: (context: any) => Promise<Response>;
+  let GET: (context: APIContext) => Promise<Response>;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -43,7 +45,7 @@ describe("GET /api/rooms/{roomId}", () => {
   });
 
   it("returns 500 when Supabase client is missing", async () => {
-    const response = await GET(buildContext({ locals: {} }));
+    const response = await GET(buildContext({ locals: { supabase: null } }));
 
     expect(response.status).toBe(500);
     const body = await response.json();
@@ -123,7 +125,7 @@ describe("GET /api/rooms/{roomId}", () => {
 });
 
 describe("GET /api/rooms/{roomId} - unauthenticated", () => {
-  let GET: (context: any) => Promise<Response>;
+  let GET: (context: APIContext) => Promise<Response>;
 
   beforeEach(async () => {
     vi.resetModules();
@@ -145,7 +147,7 @@ describe("GET /api/rooms/{roomId} - unauthenticated", () => {
   });
 
   it("returns 401 when authentication is missing", async () => {
-    const response = await GET(buildContext({ locals: { supabase: {}, user: null } }));
+    const response = await GET(buildContext({ locals: { supabase: {} as SupabaseClient, user: null } }));
 
     expect(response.status).toBe(401);
     const body = await response.json();

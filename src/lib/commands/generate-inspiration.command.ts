@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { GenerateInspirationCommand, GeneratedInspirationDTO } from "../../types";
 import { ValidationRules } from "../../types";

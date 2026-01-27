@@ -39,10 +39,6 @@ export class ListRoomsCommand {
    * Handle errors during execution
    */
   private handleError(error: unknown): Response {
-    if (import.meta.env.DEV) {
-      console.error("[ListRoomsCommand] Error:", error);
-    }
-
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while fetching rooms.", {
       message: error instanceof Error ? error.message : "Unknown error",
     });

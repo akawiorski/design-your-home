@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { GenerateSimpleInspirationResponse } from "../../types";
 import { getRoomWithTypeById } from "../services/rooms.service";

@@ -36,10 +36,6 @@ export class CreateRoomCommand {
    * Handle errors during execution with specific error type mapping
    */
   private handleError(error: unknown): Response {
-    if (import.meta.env.DEV) {
-      console.error("[CreateRoomCommand] Error:", error);
-    }
-
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
     // Room type not found

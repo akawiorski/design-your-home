@@ -23,7 +23,7 @@ export function compose(...handlers: MiddlewareHandler[]): MiddlewareHandler {
       }
 
       const handler = handlers[index++];
-      return handler(context, dispatch);
+      return (await handler(context, dispatch)) as Response;
     };
 
     return dispatch();

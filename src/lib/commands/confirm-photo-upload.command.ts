@@ -74,10 +74,6 @@ export class ConfirmPhotoUploadCommand {
    * Handle errors during execution
    */
   private handleError(error: unknown): Response {
-    if (import.meta.env.DEV) {
-      console.error("[ConfirmPhotoUploadCommand] Error:", error);
-    }
-
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while creating photo.", {
       message: error instanceof Error ? error.message : "Unknown error",
     });

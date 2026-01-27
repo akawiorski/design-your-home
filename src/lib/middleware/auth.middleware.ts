@@ -17,10 +17,6 @@ export const setupAuth = defineMiddleware(async (context, next) => {
   const supabase = context.locals.supabase;
 
   if (!supabase) {
-    // Log error in development
-    if (import.meta.env.DEV) {
-      console.error("[Auth Middleware] Supabase client not available");
-    }
     return next();
   }
 
@@ -32,9 +28,6 @@ export const setupAuth = defineMiddleware(async (context, next) => {
     } = await supabase.auth.getUser();
 
     if (error) {
-      if (import.meta.env.DEV) {
-        console.error("[Auth Middleware] Failed to get user:", error.message);
-      }
       return next();
     }
 
@@ -48,16 +41,9 @@ export const setupAuth = defineMiddleware(async (context, next) => {
       // Store full session
       const { data: sessionData } = await supabase.auth.getSession();
       context.locals.session = sessionData.session;
-
-      if (import.meta.env.DEV) {
-        console.log("[Auth Middleware] User authenticated:", user.email);
-      }
     }
-  } catch (error) {
-    // Log error in development
-    if (import.meta.env.DEV) {
-      console.error("[Auth Middleware] Unexpected error:", error);
-    }
+  } catch {
+    return next();
   }
 
   return next();

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client";
-import type { GetUploadUrlCommand, GetUploadUrlResponse } from "../../types";
+import type { GetUploadUrlCommand, GetUploadUrlResponse, PhotoType } from "../../types";
 import { ValidationRules } from "../../types";
 import {
   verifyRoomOwnership,
@@ -127,7 +127,7 @@ export class GenerateUploadUrlCommand {
   /**
    * Create pending photo record in database
    */
-  private async createPendingRecord(photoId: string, photoType: string, storagePath: string): Promise<void> {
+  private async createPendingRecord(photoId: string, photoType: PhotoType, storagePath: string): Promise<void> {
     await createPendingPhoto(this.supabase, photoId, this.roomId, photoType, storagePath);
   }
 
@@ -166,11 +166,6 @@ export class GenerateUploadUrlCommand {
    * Handle errors during execution
    */
   private handleError(error: unknown): Response {
-    // Log error in development
-    if (import.meta.env.DEV) {
-      console.error("[GenerateUploadUrlCommand] Error:", error);
-    }
-
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while generating upload URL.", {
       message: error instanceof Error ? error.message : "Unknown error",
     });

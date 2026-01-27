@@ -7,6 +7,7 @@ import { errorResponse, commonErrors } from "../../../../../lib/api/response.hel
 import { validateRoomId, validateAuth } from "../../../../../lib/api/validators";
 import { ListRoomPhotosCommand } from "../../../../../lib/commands/list-room-photos.command";
 import { ConfirmPhotoUploadCommand } from "../../../../../lib/commands/confirm-photo-upload.command";
+import { DEFAULT_USER_ID } from "../../../../../db/supabase.client";
 
 export const prerender = false;
 

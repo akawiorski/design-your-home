@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { RoomTypeDTO } from "../../types";
 

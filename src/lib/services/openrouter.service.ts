@@ -6,6 +6,7 @@ import type {
   OpenRouterResponseSchema,
   OpenRouterSimpleResponseSchema,
 } from "../../types";
+/* eslint-disable no-console */
 import { ValidationRules } from "../../types";
 
 interface OpenRouterModelParams {

@@ -2,8 +2,8 @@ import type { Locator, Page } from "@playwright/test";
 
 export class RoomCardPage {
   readonly page: Page;
-  readonly card: Locator;
-  readonly title: Locator;
+  card: Locator;
+  title: Locator;
 
   constructor(page: Page, index = 0) {
     this.page = page;

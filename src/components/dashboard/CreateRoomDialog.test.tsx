@@ -88,7 +88,7 @@ describe("CreateRoomDialog", () => {
   });
 
   it("shows loading state while fetching room types", () => {
-    getRoomTypesMock.mockImplementation(() => new Promise(() => {}));
+    getRoomTypesMock.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 10_000)));
     render(<CreateRoomDialog open onOpenChange={handleOpenChange} onCreated={handleCreated} />);
 
     expect(screen.getByText("Ładowanie typów...")).toBeInTheDocument();
@@ -161,7 +161,7 @@ describe("CreateRoomDialog", () => {
   });
 
   it("shows loading state during submission", async () => {
-    createRoomMock.mockImplementation(() => new Promise(() => {}));
+    createRoomMock.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 10_000)));
     render(<CreateRoomDialog open onOpenChange={handleOpenChange} onCreated={handleCreated} />);
 
     await waitFor(() => {

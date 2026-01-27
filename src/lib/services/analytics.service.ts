@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { AnalyticsEventData } from "../../types";
 import type { Json } from "../../db/database.types";

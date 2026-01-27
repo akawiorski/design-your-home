@@ -63,9 +63,9 @@ export function RoomPage({ roomId }: RoomPageProps) {
     const response = await generate({ prompt: state.prompt.trim() || undefined });
     if (response) {
       setState((prev) => ({
+        ...prev,
         prompt: "",
         results: [response, ...prev.results],
-        descriptionResult: prev.descriptionResult,
       }));
     }
   }, [generate, state.prompt]);

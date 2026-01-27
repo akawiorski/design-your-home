@@ -21,20 +21,12 @@ export const handleRedirects = defineMiddleware(async (context, next) => {
 
   // Case 1: Unauthenticated user trying to access protected route
   if (!isPublic && !isAuthenticated) {
-    if (import.meta.env.DEV) {
-      console.log(`[Redirect Middleware] Redirecting to login: ${pathname}`);
-    }
-
     const redirectUrl = `${ROUTES.LOGIN}?redirectTo=${encodeURIComponent(pathname)}`;
     return context.redirect(redirectUrl);
   }
 
   // Case 2: Authenticated user trying to access login/register
   if (isAuthenticated && isAuthOnly) {
-    if (import.meta.env.DEV) {
-      console.log(`[Redirect Middleware] Redirecting to dashboard: ${pathname}`);
-    }
-
     return context.redirect(DEFAULT_PROTECTED_PATH);
   }
 

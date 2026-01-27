@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { PhotoType, RoomPhotoDTO, PhotoCount } from "../../types";
 import { ValidationRules } from "../../types";

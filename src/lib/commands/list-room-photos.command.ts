@@ -97,10 +97,6 @@ export class ListRoomPhotosCommand {
    * Handle errors during execution
    */
   private handleError(error: unknown): Response {
-    if (import.meta.env.DEV) {
-      console.error("[ListRoomPhotosCommand] Error:", error);
-    }
-
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while fetching photos.", {
       message: error instanceof Error ? error.message : "Unknown error",
     });
