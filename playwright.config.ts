@@ -7,7 +7,10 @@ const envTestPath = ".env.test";
 
 // Load .env.test only for local runs (CI relies on environment variables)
 if (!isCI && existsSync(envTestPath)) {
-  dotenv.config({ path: envTestPath });
+  dotenv.config({
+    path: envTestPath,
+    override: false,
+  });
 }
 
 export default defineConfig({
