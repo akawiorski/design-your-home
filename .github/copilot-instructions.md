@@ -25,6 +25,7 @@ When introducing changes to the project, always follow the directory structure b
 - `./src/components/ui` - Client-side components from Shadcn/ui
 - `./src/lib` - Services and helpers
 - `./src/lib/services` - Business logic services for API operations
+- `./src/features` - Shared feature flag configuration
 - `./src/assets` - static internal assets
 - `./public` - public assets
 

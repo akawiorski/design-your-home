@@ -2,6 +2,9 @@
 dist/
 
 test-results/
+playwright-report/
+unit-test-coverage/
+e2e-test-coverage/
 
 # generated types
 .astro/
