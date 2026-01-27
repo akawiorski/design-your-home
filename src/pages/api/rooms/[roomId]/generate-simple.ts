@@ -58,5 +58,8 @@ export async function POST(context: APIContext) {
     parsedBody.data.description
   );
 
+  // eslint-disable-next-line no-console
+  console.info("[Supabase] Sending request using URL:", import.meta.env.SUPABASE_URL);
+
   return command.execute();
 }
