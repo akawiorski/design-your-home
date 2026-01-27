@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --no-omit=optional
+        run: npm ci
 
       - name: Run linter
         run: npm run lint
@@ -43,7 +43,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --no-omit=optional
+        run: npm ci
 
       - name: Run unit tests with coverage
         run: npm test -- --coverage
@@ -72,7 +72,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --no-omit=optional
+        run: npm ci
 
       - name: Install Playwright browsers
         run: npx playwright install chromium --with-deps
@@ -129,7 +129,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --no-omit=optional
+        run: npm ci
 
       - name: Build application
         run: npm run build
