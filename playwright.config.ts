@@ -16,6 +16,7 @@ if (!isCI && existsSync(envTestPath)) {
 export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 60_000,
+  reporter: [["html", { open: "never" }]],
   expect: {
     timeout: 10_000,
   },

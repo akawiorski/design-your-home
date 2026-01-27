@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: unit-test-coverage
-          path: coverage/
+          path: unit-test-coverage/
           retention-days: 7
 
   e2e-test:
@@ -100,9 +100,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: e2e-test-coverage
+          name: playwright-report
           path: playwright-report/
-          retention-days: 7
+          retention-days: 5
 
   build:
     name: Build
