@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import { useState } from "react";
 import { Button } from "../ui/button";
+import logger from "../../lib/logger";
 
 export default function UserMenu({ userEmail }: { userEmail?: string }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,13 +15,13 @@ export default function UserMenu({ userEmail }: { userEmail?: string }) {
       });
 
       if (!response.ok) {
-        console.error("Logout error");
+        logger.error("Logout error");
       }
 
       // Always redirect to login after logout attempt
       window.location.href = "/login";
     } catch (error) {
-      console.error("Logout error:", error);
+      logger.error({ err: error }, "Logout error");
       // Still redirect even on error
       window.location.href = "/login";
     }

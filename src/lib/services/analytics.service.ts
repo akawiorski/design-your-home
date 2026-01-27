@@ -1,7 +1,7 @@
-/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { AnalyticsEventData } from "../../types";
 import type { Json } from "../../db/database.types";
+import logger from "../logger";
 
 /**
  * Service for managing analytics events
@@ -35,7 +35,7 @@ export async function trackEvent(
     .single();
 
   if (error) {
-    console.error("analytics.service.trackEvent failed", { userId, eventType, error });
+    logger.error({ userId, eventType, err: error }, "analytics.service.trackEvent failed");
     throw new Error(`Failed to track analytics event: ${error.message}`);
   }
 

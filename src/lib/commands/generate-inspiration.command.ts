@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { GenerateInspirationCommand, GeneratedInspirationDTO } from "../../types";
 import { ValidationRules } from "../../types";
@@ -6,6 +5,7 @@ import { getRoomWithTypeById } from "../services/rooms.service";
 import { getRoomPhotos } from "../services/photos.service";
 import { createAIServiceForInspiration, mapAIErrorToResponse } from "../factories/ai-service.factory";
 import { errorResponse, jsonResponse } from "../api/response.helpers";
+import logger from "../logger";
 
 /**
  * Command to generate room inspiration using AI
@@ -112,7 +112,7 @@ export class GenerateInspirationCommand {
    * Log request details
    */
   private logRequest(roomPhotosCount: number, inspirationPhotosCount: number): void {
-    console.info("generate.inspiration.request", {
+    logger.info("generate.inspiration.request", {
       roomId: this.roomId,
       userId: this.userId,
       promptLength: this.prompt?.length ?? 0,
@@ -126,12 +126,15 @@ export class GenerateInspirationCommand {
    * Handle errors during execution
    */
   private handleError(error: unknown): Response {
-    console.error("generate.inspiration failed", {
-      requestId: this.requestId,
-      roomId: this.roomId,
-      userId: this.userId,
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        requestId: this.requestId,
+        roomId: this.roomId,
+        userId: this.userId,
+        err: error instanceof Error ? error : new Error(String(error)),
+      },
+      "generate.inspiration failed"
+    );
 
     return mapAIErrorToResponse(error, this.requestId);
   }

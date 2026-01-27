@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { supabaseClient } from "../../db/supabase.client";
+import logger from "../../lib/logger";
 
 const PASSWORD_MIN_LENGTH = 4;
 
@@ -55,10 +56,7 @@ export default function ResetPasswordForm() {
         } else {
           setFormError("Wystąpił błąd. Spróbuj ponownie.");
         }
-        if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
-          console.error("Password reset error:", error);
-        }
+        logger.error({ err: error }, "Password reset error");
         return;
       }
 
@@ -71,10 +69,7 @@ export default function ResetPasswordForm() {
       }, 2000);
     } catch (error) {
       setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.error("Unexpected password reset error:", error);
-      }
+      logger.error({ err: error }, "Unexpected password reset error");
     } finally {
       setIsLoading(false);
     }

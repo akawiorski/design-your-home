@@ -1,7 +1,7 @@
-/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { PhotoType, RoomPhotoDTO, PhotoCount } from "../../types";
 import { ValidationRules } from "../../types";
+import logger from "../logger";
 
 /**
  * Service for managing room photos
@@ -24,7 +24,7 @@ export async function getPhotoCountByRoomId(supabase: SupabaseClient, roomId: st
     .is("deleted_at", null);
 
   if (error) {
-    console.error("photos.service.getPhotoCountByRoomId failed", { roomId, error });
+    logger.error({ roomId, err: error }, "photos.service.getPhotoCountByRoomId failed");
     throw new Error(`Failed to fetch photo count: ${error.message}`);
   }
 
@@ -50,7 +50,7 @@ export async function verifyRoomOwnership(supabase: SupabaseClient, roomId: stri
     .maybeSingle();
 
   if (error) {
-    console.error("photos.service.verifyRoomOwnership failed", { roomId, userId, error });
+    logger.error({ roomId, userId, err: error }, "photos.service.verifyRoomOwnership failed");
     throw new Error(`Failed to verify room ownership: ${error.message}`);
   }
 
@@ -111,7 +111,10 @@ export async function createPendingPhoto(
     .single();
 
   if (error) {
-    console.error("photos.service.createPendingPhoto failed", { roomId, photoId, photoType, storagePath, error });
+    logger.error(
+      { roomId, photoId, photoType, storagePath, err: error },
+      "photos.service.createPendingPhoto failed"
+    );
     throw new Error(`Failed to create pending photo: ${error.message}`);
   }
 
@@ -145,7 +148,7 @@ export async function confirmPhotoUpload(
     .maybeSingle();
 
   if (findError) {
-    console.error("photos.service.confirmPhotoUpload find failed", { payload, error: findError });
+    logger.error({ payload, err: findError }, "photos.service.confirmPhotoUpload find failed");
     throw new Error(`Failed to confirm photo: ${findError.message}`);
   }
 
@@ -162,10 +165,13 @@ export async function confirmPhotoUpload(
     .single();
 
   if (updateError || !updatedPhoto) {
-    console.error("photos.service.confirmPhotoUpload update failed", {
-      payload,
-      error: updateError ?? null,
-    });
+    logger.error(
+      {
+        payload,
+        err: updateError ?? null,
+      },
+      "photos.service.confirmPhotoUpload update failed"
+    );
     throw new Error(`Failed to update photo metadata: ${updateError?.message || "Unknown error"}`);
   }
 
@@ -203,12 +209,15 @@ export async function generatePresignedUploadUrl(
   });
 
   if (error) {
-    console.error("photos.service.generatePresignedUploadUrl failed", { bucketName, storagePath, error });
+    logger.error({ bucketName, storagePath, err: error }, "photos.service.generatePresignedUploadUrl failed");
     throw new Error(`Failed to generate presigned upload URL: ${error.message}`);
   }
 
   if (!data?.signedUrl) {
-    console.error("photos.service.generatePresignedUploadUrl missing signedUrl", { bucketName, storagePath });
+    logger.error(
+      { bucketName, storagePath },
+      "photos.service.generatePresignedUploadUrl missing signedUrl"
+    );
     throw new Error("Presigned URL was not generated");
   }
 
@@ -223,7 +232,7 @@ async function ensureBucketExists(supabase: SupabaseClient, bucketName: string) 
   }
 
   if (error) {
-    console.error("photos.service.ensureBucketExists failed", { bucketName, error });
+    logger.error({ bucketName, err: error }, "photos.service.ensureBucketExists failed");
   }
 
   const { error: createError } = await supabase.storage.createBucket(bucketName, {
@@ -233,7 +242,7 @@ async function ensureBucketExists(supabase: SupabaseClient, bucketName: string) 
   });
 
   if (createError) {
-    console.error("photos.service.ensureBucketExists create failed", { bucketName, error: createError });
+    logger.error({ bucketName, err: createError }, "photos.service.ensureBucketExists create failed");
     throw new Error(`Storage bucket '${bucketName}' is not available.`);
   }
 }
@@ -257,12 +266,18 @@ export async function generatePresignedDownloadUrl(
   const { data, error } = await supabase.storage.from(bucketName).createSignedUrl(storagePath, expiresIn);
 
   if (error) {
-    console.error("photos.service.generatePresignedDownloadUrl failed", { bucketName, storagePath, error });
+    logger.error(
+      { bucketName, storagePath, err: error },
+      "photos.service.generatePresignedDownloadUrl failed"
+    );
     throw new Error(`Failed to generate presigned download URL: ${error.message}`);
   }
 
   if (!data?.signedUrl) {
-    console.error("photos.service.generatePresignedDownloadUrl missing signedUrl", { bucketName, storagePath });
+    logger.error(
+      { bucketName, storagePath },
+      "photos.service.generatePresignedDownloadUrl missing signedUrl"
+    );
     throw new Error("Presigned download URL was not generated");
   }
 
@@ -299,7 +314,7 @@ export async function getRoomPhotos(
   const { data: photos, error } = await query;
 
   if (error) {
-    console.error("photos.service.getRoomPhotos failed", { roomId, photoType, error });
+    logger.error({ roomId, photoType, err: error }, "photos.service.getRoomPhotos failed");
     throw new Error(`Failed to fetch room photos: ${error.message}`);
   }
 
@@ -347,7 +362,7 @@ export async function getPhotoCountsByType(
     .is("deleted_at", null);
 
   if (error) {
-    console.error("photos.service.getPhotoCountsByType failed", { roomId, error });
+    logger.error({ roomId, err: error }, "photos.service.getPhotoCountsByType failed");
     throw new Error(`Failed to fetch photo counts: ${error.message}`);
   }
 

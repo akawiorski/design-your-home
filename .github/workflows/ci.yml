@@ -97,6 +97,14 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
+      - name: Upload E2E logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-logs
+          path: logs/
+          retention-days: 30
+
       - name: Upload E2E test coverage
         if: always()
         uses: actions/upload-artifact@v6

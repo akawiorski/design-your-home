@@ -6,8 +6,8 @@ import type {
   OpenRouterResponseSchema,
   OpenRouterSimpleResponseSchema,
 } from "../../types";
-/* eslint-disable no-console */
 import { ValidationRules } from "../../types";
+import logger from "../logger";
 
 interface OpenRouterModelParams {
   temperature?: number;
@@ -318,7 +318,7 @@ export class OpenRouterService {
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      console.info("openrouter.request", {
+      logger.info("openrouter.request", {
         model: this.modelName,
         baseUrl: this.baseUrl,
         payload,
@@ -340,7 +340,7 @@ export class OpenRouterService {
       }
 
       const responseBody = (await response.json()) as OpenRouterChatResponse;
-      console.info("openrouter.response", responseBody);
+      logger.info("openrouter.response", responseBody);
       return responseBody;
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
@@ -357,7 +357,7 @@ export class OpenRouterService {
     const message = response.choices?.[0]?.message;
     const truncatedMessage = message ? this.deepTruncate(message, 100) : null;
 
-    console.log("Mapping OpenRouter response to DTO:", truncatedMessage);
+    logger.debug("Mapping OpenRouter response to DTO", { message: truncatedMessage });
 
     if (!message) {
       throw new Error("OpenRouter response missing message.");
@@ -414,7 +414,7 @@ export class OpenRouterService {
     const message = response.choices?.[0]?.message;
     const truncatedMessage = message ? this.deepTruncate(message, 100) : null;
 
-    console.log("Mapping OpenRouter simple response to DTO:", truncatedMessage);
+    logger.debug("Mapping OpenRouter simple response to DTO", { message: truncatedMessage });
 
     if (!message) {
       throw new Error("OpenRouter response missing message.");

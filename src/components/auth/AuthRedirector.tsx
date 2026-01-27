@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { isSupabaseConfigured, supabaseClient } from "../../db/supabase.client";
 import { Spinner } from "../ui/spinner";
+import logger from "../../lib/logger";
 
 /**
  * AuthRedirector component
@@ -39,8 +40,7 @@ export function AuthRedirector() {
     const checkSessionAndRedirect = async () => {
       try {
         if (!isSupabaseConfigured || !supabaseClient) {
-          // eslint-disable-next-line no-console
-          console.error("Supabase is not configured. Redirecting to login.");
+          logger.error("Supabase is not configured. Redirecting to login.");
           window.location.href = "/login";
           return;
         }
@@ -54,8 +54,7 @@ export function AuthRedirector() {
 
         // Handle Supabase errors
         if (error) {
-          // eslint-disable-next-line no-console
-          console.error("Error checking session:", error);
+          logger.error({ err: error }, "Error checking session");
           // On error, assume user is not authenticated and redirect to login
           window.location.href = safeLoginTarget;
           return;
@@ -69,8 +68,7 @@ export function AuthRedirector() {
         }
       } catch (err) {
         // Handle unexpected errors
-        // eslint-disable-next-line no-console
-        console.error("Unexpected error during session check:", err);
+        logger.error({ err }, "Unexpected error during session check");
         window.location.href = "/login";
       } finally {
         setIsLoading(false);

@@ -1,9 +1,9 @@
-/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { GenerateSimpleInspirationResponse } from "../../types";
 import { getRoomWithTypeById } from "../services/rooms.service";
 import { createAIServiceForSimpleAdvice, mapAIErrorToResponse } from "../factories/ai-service.factory";
 import { errorResponse, jsonResponse } from "../api/response.helpers";
+import logger from "../logger";
 
 /**
  * Command to generate simple advice using AI
@@ -70,7 +70,7 @@ export class GenerateSimpleAdviceCommand {
    * Log request details
    */
   private logRequest(): void {
-    console.info("generate.simple.request", {
+    logger.info("generate.simple.request", {
       roomId: this.roomId,
       userId: this.userId,
       descriptionLength: this.description.length,
@@ -82,12 +82,15 @@ export class GenerateSimpleAdviceCommand {
    * Handle errors during execution
    */
   private handleError(error: unknown): Response {
-    console.error("generate.simple failed", {
-      requestId: this.requestId,
-      roomId: this.roomId,
-      userId: this.userId,
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        requestId: this.requestId,
+        roomId: this.roomId,
+        userId: this.userId,
+        err: error instanceof Error ? error : new Error(String(error)),
+      },
+      "generate.simple failed"
+    );
 
     return mapAIErrorToResponse(error, this.requestId);
   }

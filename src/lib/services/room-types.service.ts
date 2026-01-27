@@ -1,6 +1,6 @@
-/* eslint-disable no-console */
 import type { SupabaseClient } from "../../db/supabase.client";
 import type { RoomTypeDTO } from "../../types";
+import logger from "../logger";
 
 /**
  * Service for managing room types
@@ -21,7 +21,7 @@ export async function getAllRoomTypes(supabase: SupabaseClient): Promise<RoomTyp
     .order("id", { ascending: true });
 
   if (error) {
-    console.error("room-types.service.getAllRoomTypes failed", { error });
+    logger.error({ err: error }, "room-types.service.getAllRoomTypes failed");
     throw new Error(`Failed to fetch room types: ${error.message}`);
   }
 

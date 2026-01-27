@@ -3,6 +3,7 @@ import { createServerClient, type CookieOptionsWithName } from "@supabase/ssr";
 import type { AstroCookies } from "astro";
 
 import type { Database } from "../db/database.types.ts";
+import logger from "../lib/logger";
 
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseKey = import.meta.env.SUPABASE_KEY;
@@ -43,18 +44,14 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
 
 export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
   if (!supabaseUrl || !supabaseKey) {
-    if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.error("[Supabase] Missing configuration:", {
-        hasUrl: Boolean(supabaseUrl),
-        hasKey: Boolean(supabaseKey),
-      });
-    }
+    logger.error("[Supabase] Missing configuration", {
+      hasUrl: Boolean(supabaseUrl),
+      hasKey: Boolean(supabaseKey),
+    });
     return null;
   }
 
-  // eslint-disable-next-line no-console
-  console.info("[Supabase] Server client initialized with URL:", supabaseUrl);
+  logger.info("[Supabase] Server client initialized", { url: supabaseUrl });
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,

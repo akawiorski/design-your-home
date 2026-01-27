@@ -7,6 +7,7 @@ import { DEFAULT_USER_ID } from "../../../../db/supabase.client";
 import { errorResponse, commonErrors } from "../../../../lib/api/response.helpers";
 import { validateRoomId, validateAuth } from "../../../../lib/api/validators";
 import { GenerateSimpleAdviceCommand } from "../../../../lib/commands/generate-simple-advice.command";
+import logger from "../../../../lib/logger";
 
 export const prerender = false;
 
@@ -58,8 +59,7 @@ export async function POST(context: APIContext) {
     parsedBody.data.description
   );
 
-  // eslint-disable-next-line no-console
-  console.info("[Supabase] Sending request using URL:", import.meta.env.SUPABASE_URL);
+  logger.info("[Supabase] Sending request using URL", { url: import.meta.env.SUPABASE_URL });
 
   return command.execute();
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { supabaseClient } from "../../db/supabase.client";
+import logger from "../../lib/logger";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -40,20 +41,14 @@ export default function ForgotPasswordForm() {
 
       if (error) {
         // For security, don't reveal if email exists
-        if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
-          console.error("Password reset error:", error);
-        }
+        logger.error({ err: error }, "Password reset error");
       }
 
       // Always show success message (security best practice)
       setSuccess(true);
     } catch (error) {
       setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.error("Unexpected password reset error:", error);
-      }
+      logger.error({ err: error }, "Unexpected password reset error");
     } finally {
       setIsLoading(false);
     }

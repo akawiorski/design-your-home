@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { registerSchema } from "../../lib/validation/auth.schemas";
+import logger from "../../lib/logger";
 
 interface FormErrors {
   email?: string;
@@ -66,10 +67,7 @@ export default function RegisterForm() {
     setFormError(null);
 
     try {
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.log("[RegisterForm] Sending registration request...");
-      }
+      logger.debug("[RegisterForm] Sending registration request...");
 
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -84,16 +82,12 @@ export default function RegisterForm() {
 
       const data = await response.json();
 
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.log("[RegisterForm] Response:", { status: response.status, data });
-      }
+      logger.debug("[RegisterForm] Response", { status: response.status, data });
 
       if (!response.ok) {
         setFormError(data.error || "Wystąpił błąd. Spróbuj ponownie.");
-        if (import.meta.env.DEV && data.debug) {
-          // eslint-disable-next-line no-console
-          console.error("[RegisterForm] Server error details:", data.debug);
+        if (data.debug) {
+          logger.error("[RegisterForm] Server error details", { debug: data.debug });
         }
         return;
       }
@@ -102,10 +96,7 @@ export default function RegisterForm() {
       setRegistrationSuccess(true);
     } catch (error) {
       setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.error("Unexpected registration error:", error);
-      }
+      logger.error({ err: error }, "Unexpected registration error");
     } finally {
       setIsSubmitting(false);
     }

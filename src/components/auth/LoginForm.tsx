@@ -2,6 +2,7 @@ import { useCallback, useId, useMemo, useState, type FormEvent } from "react";
 
 import { Button } from "../ui/button";
 import { loginSchema } from "../../lib/validation/auth.schemas";
+import logger from "../../lib/logger";
 
 interface LoginFormProps {
   redirectTo?: string | null;
@@ -136,10 +137,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
         if (!response.ok || data.error) {
           setFormError(mapAuthErrorMessage(data.error));
 
-          if (import.meta.env.DEV) {
-            // eslint-disable-next-line no-console
-            console.error("Błąd logowania:", data.error);
-          }
+          logger.error({ error: data.error }, "Błąd logowania");
 
           setIsSubmitting(false);
           return;
@@ -152,10 +150,7 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
       } catch (error) {
         setFormError("Problem z połączeniem. Sprawdź internet i spróbuj ponownie.");
 
-        if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
-          console.error("Nieoczekiwany błąd logowania:", error);
-        }
+        logger.error({ err: error }, "Nieoczekiwany błąd logowania");
         setIsSubmitting(false);
       }
     },
