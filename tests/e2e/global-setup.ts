@@ -10,8 +10,11 @@ async function globalSetup() {
   const testPassword = process.env.E2E_PASSWORD;
 
   if (!testUserId || !testUsername || !testPassword) {
+    const isCI = Boolean(process.env.CI);
+    const sourceHint = isCI ? "environment variables" : ".env.test or environment variables";
+
     throw new Error(
-      "Missing required environment variables: E2E_USERNAME_ID, E2E_USERNAME, E2E_PASSWORD must be set in .env.test"
+      `Missing required environment variables: E2E_USERNAME_ID, E2E_USERNAME, E2E_PASSWORD must be set in ${sourceHint}`
     );
   }
 

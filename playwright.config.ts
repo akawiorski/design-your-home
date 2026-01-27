@@ -1,8 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
+import { existsSync } from "node:fs";
 
-// Load .env.test for E2E tests
-dotenv.config({ path: ".env.test" });
+const isCI = Boolean(process.env.CI);
+const envTestPath = ".env.test";
+
+// Load .env.test only for local runs (CI relies on environment variables)
+if (!isCI && existsSync(envTestPath)) {
+  dotenv.config({ path: envTestPath });
+}
 
 export default defineConfig({
   testDir: "./tests/e2e",
