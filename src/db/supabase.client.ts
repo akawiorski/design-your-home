@@ -53,6 +53,9 @@ export const createSupabaseServerInstance = (context: { headers: Headers; cookie
     return null;
   }
 
+  // eslint-disable-next-line no-console
+  console.info("[Supabase] Server client initialized with URL:", supabaseUrl);
+
   const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,
     cookies: {
@@ -64,9 +67,6 @@ export const createSupabaseServerInstance = (context: { headers: Headers; cookie
       },
     },
   });
-
-  // eslint-disable-next-line no-console
-  console.info("[Supabase] Server client initialized with URL:", supabaseUrl);
 
   return supabase;
 };
