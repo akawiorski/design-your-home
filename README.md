@@ -63,8 +63,8 @@ AI:
 
 CI/CD & hosting:
 
-- GitHub Actions (planned)
-- DigitalOcean (planned)
+- GitHub Actions
+- Cloudflare Pages
 
 ## Getting started locally
 

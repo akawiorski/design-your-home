@@ -17,7 +17,7 @@ AI:
 CI/CD i Hosting:
 
 - GitHub Actions
-- DigitalOcean
+- Cloudflare Pages
 
 Testing:
 

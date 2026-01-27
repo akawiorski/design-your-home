@@ -28,7 +28,6 @@ if (missingEnvVars.length > 0) {
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: ["tests/e2e/dashboard/01-basic-display.spec.ts"],
   timeout: 60_000,
   reporter: [["line"], ["html", { open: "never" }], ["junit", { outputFile: "playwright-report/junit.xml" }]],
   expect: {
