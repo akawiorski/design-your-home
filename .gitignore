@@ -5,6 +5,7 @@ test-results/
 playwright-report/
 unit-test-coverage/
 e2e-test-coverage/
+coverage/
 
 # generated types
 .astro/

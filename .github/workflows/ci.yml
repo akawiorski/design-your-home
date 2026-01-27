@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: unit-test-coverage
-          path: unit-test-coverage/
+          path: coverage/
           retention-days: 7
 
   e2e-test:
@@ -93,7 +93,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-report
+          name: e2e-test-coverage
           path: playwright-report/
           retention-days: 30
 
