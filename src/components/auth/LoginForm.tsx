@@ -134,6 +134,15 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
 
         const data = await response.json();
 
+        logger.info(
+          {
+            status: response.status,
+            ok: response.ok,
+            body: data,
+          },
+          "Odpowiedź logowania"
+        );
+
         if (!response.ok || data.error) {
           setFormError(mapAuthErrorMessage(data.error));
 

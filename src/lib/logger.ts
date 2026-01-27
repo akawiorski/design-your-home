@@ -1,6 +1,6 @@
 import pino from "pino";
 
-const logLevel = import.meta.env?.DEV ? "debug" : "info";
+const logLevel = "debug";
 
 const isServer = typeof window === "undefined";
 
