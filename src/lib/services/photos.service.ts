@@ -111,10 +111,7 @@ export async function createPendingPhoto(
     .single();
 
   if (error) {
-    logger.error(
-      { roomId, photoId, photoType, storagePath, err: error },
-      "photos.service.createPendingPhoto failed"
-    );
+    logger.error({ roomId, photoId, photoType, storagePath, err: error }, "photos.service.createPendingPhoto failed");
     throw new Error(`Failed to create pending photo: ${error.message}`);
   }
 
@@ -214,10 +211,7 @@ export async function generatePresignedUploadUrl(
   }
 
   if (!data?.signedUrl) {
-    logger.error(
-      { bucketName, storagePath },
-      "photos.service.generatePresignedUploadUrl missing signedUrl"
-    );
+    logger.error({ bucketName, storagePath }, "photos.service.generatePresignedUploadUrl missing signedUrl");
     throw new Error("Presigned URL was not generated");
   }
 
@@ -266,18 +260,12 @@ export async function generatePresignedDownloadUrl(
   const { data, error } = await supabase.storage.from(bucketName).createSignedUrl(storagePath, expiresIn);
 
   if (error) {
-    logger.error(
-      { bucketName, storagePath, err: error },
-      "photos.service.generatePresignedDownloadUrl failed"
-    );
+    logger.error({ bucketName, storagePath, err: error }, "photos.service.generatePresignedDownloadUrl failed");
     throw new Error(`Failed to generate presigned download URL: ${error.message}`);
   }
 
   if (!data?.signedUrl) {
-    logger.error(
-      { bucketName, storagePath },
-      "photos.service.generatePresignedDownloadUrl missing signedUrl"
-    );
+    logger.error({ bucketName, storagePath }, "photos.service.generatePresignedDownloadUrl missing signedUrl");
     throw new Error("Presigned download URL was not generated");
   }
 

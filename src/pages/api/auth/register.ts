@@ -11,7 +11,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const body = await request.json();
     const { email, password } = body;
 
-    logger.debug("[Register API] Request data", { email, passwordLength: password?.length });
+    logger.debug({ email, passwordLength: password?.length }, "[Register API] Request data");
 
     // Validation
     if (!email || !password) {

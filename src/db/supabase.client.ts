@@ -44,14 +44,17 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
 
 export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
   if (!supabaseUrl || !supabaseKey) {
-    logger.error("[Supabase] Missing configuration", {
-      hasUrl: Boolean(supabaseUrl),
-      hasKey: Boolean(supabaseKey),
-    });
+    logger.error(
+      {
+        hasUrl: Boolean(supabaseUrl),
+        hasKey: Boolean(supabaseKey),
+      },
+      "[Supabase] Missing configuration"
+    );
     return null;
   }
 
-  logger.info("[Supabase] Server client initialized", { url: supabaseUrl });
+  logger.info({ url: supabaseUrl }, "[Supabase] Server client initialized");
 
   const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
     cookieOptions,

@@ -59,7 +59,7 @@ export async function POST(context: APIContext) {
     parsedBody.data.description
   );
 
-  logger.info("[Supabase] Sending request using URL", { url: import.meta.env.SUPABASE_URL });
+  logger.info({ url: import.meta.env.SUPABASE_URL }, "[Supabase] Sending request using URL");
 
   return command.execute();
 }

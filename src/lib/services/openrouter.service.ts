@@ -318,11 +318,14 @@ export class OpenRouterService {
     const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
 
     try {
-      logger.info("openrouter.request", {
-        model: this.modelName,
-        baseUrl: this.baseUrl,
-        payload,
-      });
+      logger.info(
+        {
+          model: this.modelName,
+          baseUrl: this.baseUrl,
+          payload,
+        },
+        "openrouter.request"
+      );
 
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: "POST",
@@ -340,7 +343,7 @@ export class OpenRouterService {
       }
 
       const responseBody = (await response.json()) as OpenRouterChatResponse;
-      logger.info("openrouter.response", responseBody);
+      logger.info({ responseBody }, "openrouter.response");
       return responseBody;
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
@@ -357,7 +360,7 @@ export class OpenRouterService {
     const message = response.choices?.[0]?.message;
     const truncatedMessage = message ? this.deepTruncate(message, 100) : null;
 
-    logger.debug("Mapping OpenRouter response to DTO", { message: truncatedMessage });
+    logger.debug({ message: truncatedMessage }, "Mapping OpenRouter response to DTO");
 
     if (!message) {
       throw new Error("OpenRouter response missing message.");
@@ -414,7 +417,7 @@ export class OpenRouterService {
     const message = response.choices?.[0]?.message;
     const truncatedMessage = message ? this.deepTruncate(message, 100) : null;
 
-    logger.debug("Mapping OpenRouter simple response to DTO", { message: truncatedMessage });
+    logger.debug({ message: truncatedMessage }, "Mapping OpenRouter simple response to DTO");
 
     if (!message) {
       throw new Error("OpenRouter response missing message.");

@@ -82,12 +82,12 @@ export default function RegisterForm() {
 
       const data = await response.json();
 
-      logger.debug("[RegisterForm] Response", { status: response.status, data });
+      logger.debug({ status: response.status, data }, "[RegisterForm] Response");
 
       if (!response.ok) {
         setFormError(data.error || "Wystąpił błąd. Spróbuj ponownie.");
         if (data.debug) {
-          logger.error("[RegisterForm] Server error details", { debug: data.debug });
+          logger.error({ debug: data.debug }, "[RegisterForm] Server error details");
         }
         return;
       }

@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "vitest run --coverage",
+    "test": "vitest run",
     "test:e2e": "playwright test",
     "dev:e2e": "astro dev --mode test",
     "lint": "eslint .",
