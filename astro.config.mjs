@@ -15,9 +15,13 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     resolve: {
-      alias: {
-        "react-dom/server": "react-dom/server.edge",
-      },
+      alias:
+        // eslint-disable-next-line no-undef
+        process.env.NODE_ENV === "production"
+          ? {
+              "react-dom/server": "react-dom/server.edge",
+            }
+          : {},
     },
   },
   adapter: adapter,

@@ -1,11 +1,11 @@
+// src/lib/logger.ts
 import pino from "pino";
+import type { LevelWithSilent } from "pino";
 
-const logLevel = "debug";
+const LOG_LEVEL = (import.meta.env.PUBLIC_LOG_LEVEL as LevelWithSilent | undefined) ?? "info";
+const isSSR = import.meta.env.SSR;
 
-const isServer = typeof window === "undefined";
+const logger = pino(!isSSR ? { level: LOG_LEVEL, browser: { asObject: true } } : { level: LOG_LEVEL });
 
-const logger = isServer
-  ? pino({ level: logLevel }, pino.multistream([{ level: logLevel, stream: pino.destination(1) }]))
-  : pino({ level: logLevel, browser: { asObject: true } });
-
+export { logger };
 export default logger;
