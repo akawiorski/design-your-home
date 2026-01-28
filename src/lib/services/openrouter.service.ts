@@ -189,12 +189,13 @@ export class OpenRouterService {
   }
 
   private buildSystemMessage() {
-    return (
-      "Jesteś asystentem projektowania wnętrz. Na podstawie zdjęcia pokoju i inspiracji " +
-      "przed wszystkim generujesz jedną wizualizację tego pomysłu. Ma rozdzielczość " +
-      `${ValidationRules.GENERATED_IMAGE_WIDTH}×${ValidationRules.GENERATED_IMAGE_HEIGHT} ` +
-      "(orientacja pionowa). Dodatkowo zwróć kilka punktów z poradami w JSON oraz wygeneruj jeden obraz."
-    );
+    return `
+      Jesteś asystentem projektowania wnętrz. Na podstawie zdjęcia pokoju, zdjęć inspiracji oraz
+      opisów dostarczanych przez użytkownika,
+      przede wszystkim wygeneruj jedną wizualizację tego pomysłu. Ma rozdzielczość:
+      ${ValidationRules.GENERATED_IMAGE_WIDTH}×${ValidationRules.GENERATED_IMAGE_HEIGHT} (orientacja pionowa). 
+      Dodatkowo zwróć kilka punktów z poradami w JSON.
+      `;
   }
 
   private buildSimpleSystemMessage() {
