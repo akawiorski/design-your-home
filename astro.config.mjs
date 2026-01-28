@@ -16,8 +16,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
     resolve: {
       alias: {
-        "react-dom/server.browser": "react-dom/server",
-        "react-dom/server.edge": "react-dom/server",
+        "react-dom/server": "react-dom/server.edge",
       },
     },
   },
