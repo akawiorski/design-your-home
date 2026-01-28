@@ -3,14 +3,7 @@ import { defineConfig } from "astro/config";
 
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
-import node from "@astrojs/node";
 import cloudflare from "@astrojs/cloudflare";
-
-// const adapter = isDev
-//   ? node({
-//       mode: "standalone",
-//     })
-//   : cloudflare();
 
 const adapter = cloudflare();
 
@@ -21,6 +14,12 @@ export default defineConfig({
   server: { port: 3000 },
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      alias: {
+        "react-dom/server.browser": "react-dom/server",
+        "react-dom/server.edge": "react-dom/server",
+      },
+    },
   },
   adapter: adapter,
 });
