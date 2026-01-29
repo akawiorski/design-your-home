@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RoomsListResponse } from "../../types";
 import { getRoomsByUserId } from "../services/rooms.service";
 import { errorResponse, jsonResponse } from "../api/response.helpers";

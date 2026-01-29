@@ -1,7 +1,6 @@
 import type { APIContext } from "astro";
 import { z } from "zod";
 
-import { DEFAULT_USER_ID } from "../../../../../db/supabase.client";
 import { errorResponse, commonErrors } from "../../../../../lib/api/response.helpers";
 import { validateRoomId, validateAuth } from "../../../../../lib/api/validators";
 import { GenerateUploadUrlCommand } from "../../../../../lib/commands/generate-upload-url.command";
@@ -60,7 +59,7 @@ const requestBodySchema = z.object({
  */
 export async function POST(context: APIContext) {
   const { locals, params } = context;
-  const supabase = locals.supabaseAdmin ?? locals.supabase;
+  const supabase = locals.supabase;
 
   // Validate Supabase client
   if (!supabase) {
@@ -74,7 +73,7 @@ export async function POST(context: APIContext) {
   }
 
   // Validate authentication
-  const authValidation = validateAuth(locals.session?.user?.id ?? DEFAULT_USER_ID);
+  const authValidation = validateAuth(locals.session?.user?.id || "");
   if (!authValidation.valid) {
     return authValidation.error;
   }
@@ -97,6 +96,11 @@ export async function POST(context: APIContext) {
   }
 
   // Execute command
-  const command = new GenerateUploadUrlCommand(supabase, roomIdValidation.roomId, authValidation.userId);
+  const supabaseAdmin = locals.supabaseAdmin;
+  if (!supabaseAdmin) {
+    return commonErrors.supabaseNotConfigured();
+  }
+
+  const command = new GenerateUploadUrlCommand(supabase, supabaseAdmin, roomIdValidation.roomId, authValidation.userId);
   return command.execute(validationResult.data);
 }

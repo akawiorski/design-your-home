@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import type { GenerateInspirationCommand } from "../../../../types";
 import { ValidationRules } from "../../../../types";
-import { DEFAULT_USER_ID } from "../../../../db/supabase.client";
 import { errorResponse, commonErrors } from "../../../../lib/api/response.helpers";
 import { validateRoomId, validateAuth } from "../../../../lib/api/validators";
 import { GenerateInspirationCommand as GenerateInspirationCmd } from "../../../../lib/commands/generate-inspiration.command";
@@ -16,7 +15,7 @@ const bodySchema = z.object({
 
 export async function POST(context: APIContext) {
   const { locals, params, request } = context;
-  const supabase = locals.supabaseAdmin ?? locals.supabase;
+  const supabase = locals.supabase;
 
   // Validate Supabase client
   if (!supabase) {
@@ -30,7 +29,7 @@ export async function POST(context: APIContext) {
   }
 
   // Validate authentication
-  const authValidation = validateAuth(locals.session?.user?.id ?? DEFAULT_USER_ID);
+  const authValidation = validateAuth(locals.session?.user?.id || "");
   if (!authValidation.valid) {
     return authValidation.error;
   }
@@ -51,8 +50,14 @@ export async function POST(context: APIContext) {
   }
 
   // Execute command
+  const supabaseAdmin = locals.supabaseAdmin;
+  if (!supabaseAdmin) {
+    return commonErrors.supabaseNotConfigured();
+  }
+
   const command = new GenerateInspirationCmd(
     supabase,
+    supabaseAdmin,
     roomIdValidation.roomId,
     authValidation.userId,
     parsedBody.data.prompt

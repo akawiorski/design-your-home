@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import type { SupabaseClient } from "../../../../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RoomPhotoDTO } from "../../../../../types";
@@ -24,6 +24,7 @@ const buildContext = (overrides: Partial<APIContext> = {}): APIContext =>
   ({
     locals: {
       supabase: {} as SupabaseClient,
+      supabaseAdmin: {} as SupabaseClient,
       user: { id: "user-123" },
     },
     params: {
@@ -126,7 +127,9 @@ describe("POST /api/rooms/{roomId}/photos - unauthenticated", () => {
   });
 
   it("returns 401 when authentication is missing", async () => {
-    const context = buildContext({ locals: { supabase: {} as SupabaseClient, user: null } });
+    const context = buildContext({
+      locals: { supabase: {} as SupabaseClient, supabaseAdmin: {} as SupabaseClient, user: null },
+    });
     context.request.json.mockResolvedValue({
       photoId: "b6f5b6b5-2d4d-4e88-a3da-1a1d0c2fd031",
       storagePath: "users/user-123/rooms/room-1/room/a.jpg",

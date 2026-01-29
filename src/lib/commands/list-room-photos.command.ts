@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RoomPhotosListResponse, PhotoType } from "../../types";
 import { isPhotoType } from "../../types";
 import { verifyRoomOwnership, getRoomPhotos, getPhotoCountsByType } from "../services/photos.service";
@@ -16,6 +16,7 @@ import { errorResponse, jsonResponse } from "../api/response.helpers";
 export class ListRoomPhotosCommand {
   constructor(
     private supabase: SupabaseClient,
+    private supabaseAdmin: SupabaseClient,
     private roomId: string,
     private userId: string,
     private photoType?: string
@@ -41,7 +42,7 @@ export class ListRoomPhotosCommand {
 
       // Fetch photos and counts in parallel
       const [photos, counts] = await Promise.all([
-        getRoomPhotos(this.supabase, this.roomId, validatedPhotoType.photoType),
+        getRoomPhotos(this.supabase, this.supabaseAdmin, this.roomId, validatedPhotoType.photoType),
         getPhotoCountsByType(this.supabase, this.roomId),
       ]);
 

@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PhotoType, RoomPhotoDTO, PhotoCount } from "../../types";
 import { ValidationRules } from "../../types";
 import logger from "../logger";
@@ -126,6 +126,7 @@ export async function createPendingPhoto(
  */
 export async function confirmPhotoUpload(
   supabase: SupabaseClient,
+  supabaseAdmin: SupabaseClient,
   payload: {
     photoId: string;
     roomId: string;
@@ -173,7 +174,7 @@ export async function confirmPhotoUpload(
   }
 
   const bucketName = "room-photos";
-  const url = await generatePresignedDownloadUrl(supabase, bucketName, updatedPhoto.storage_path);
+  const url = await generatePresignedDownloadUrl(supabaseAdmin, bucketName, updatedPhoto.storage_path);
 
   return {
     id: updatedPhoto.id,
@@ -189,19 +190,19 @@ export async function confirmPhotoUpload(
 /**
  * Generate a presigned upload URL for Supabase Storage
  *
- * @param supabase - Supabase client instance
+ * @param supabaseAdmin - Supabase client instance
  * @param bucketName - Storage bucket name
  * @param storagePath - Path where the file will be stored
  * @returns Presigned upload URL
  * @throws Error if URL generation fails
  */
 export async function generatePresignedUploadUrl(
-  supabase: SupabaseClient,
+  supabaseAdmin: SupabaseClient,
   bucketName: string,
   storagePath: string
 ): Promise<string> {
-  await ensureBucketExists(supabase, bucketName);
-  const { data, error } = await supabase.storage.from(bucketName).createSignedUploadUrl(storagePath, {
+  await ensureBucketExists(supabaseAdmin, bucketName);
+  const { data, error } = await supabaseAdmin.storage.from(bucketName).createSignedUploadUrl(storagePath, {
     upsert: false,
   });
 
@@ -218,8 +219,8 @@ export async function generatePresignedUploadUrl(
   return data.signedUrl;
 }
 
-async function ensureBucketExists(supabase: SupabaseClient, bucketName: string) {
-  const { data, error } = await supabase.storage.getBucket(bucketName);
+async function ensureBucketExists(supabaseAdmin: SupabaseClient, bucketName: string) {
+  const { data, error } = await supabaseAdmin.storage.getBucket(bucketName);
 
   if (data) {
     return;
@@ -229,7 +230,7 @@ async function ensureBucketExists(supabase: SupabaseClient, bucketName: string) 
     logger.error({ bucketName, err: error }, "photos.service.ensureBucketExists failed");
   }
 
-  const { error: createError } = await supabase.storage.createBucket(bucketName, {
+  const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, {
     public: false,
     fileSizeLimit: `${ValidationRules.MAX_FILE_SIZE_MB}MB`,
     allowedMimeTypes: ["image/jpeg", "image/png", "image/heic"],
@@ -252,12 +253,14 @@ async function ensureBucketExists(supabase: SupabaseClient, bucketName: string) 
  * @throws Error if URL generation fails
  */
 export async function generatePresignedDownloadUrl(
-  supabase: SupabaseClient,
+  supabaseAdmin: SupabaseClient,
   bucketName: string,
   storagePath: string,
   expiresIn = 3600
 ): Promise<string> {
-  const { data, error } = await supabase.storage.from(bucketName).createSignedUrl(storagePath, expiresIn);
+  logger.info({ bucketName, storagePath }, "Generating presigned download URL");
+
+  const { data, error } = await supabaseAdmin.storage.from(bucketName).createSignedUrl(storagePath, expiresIn);
 
   if (error) {
     logger.error({ bucketName, storagePath, err: error }, "photos.service.generatePresignedDownloadUrl failed");
@@ -283,6 +286,7 @@ export async function generatePresignedDownloadUrl(
  */
 export async function getRoomPhotos(
   supabase: SupabaseClient,
+  supabaseAdmin: SupabaseClient,
   roomId: string,
   photoType?: PhotoType
 ): Promise<RoomPhotoDTO[]> {
@@ -315,7 +319,7 @@ export async function getRoomPhotos(
   const photoDTOs: RoomPhotoDTO[] = [];
 
   for (const photo of photos) {
-    const url = await generatePresignedDownloadUrl(supabase, bucketName, photo.storage_path);
+    const url = await generatePresignedDownloadUrl(supabaseAdmin, bucketName, photo.storage_path);
 
     photoDTOs.push({
       id: photo.id,

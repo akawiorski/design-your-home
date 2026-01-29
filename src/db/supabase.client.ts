@@ -1,72 +1,62 @@
-import { createClient, type SupabaseClient as BaseSupabaseClient } from "@supabase/supabase-js";
-import { createServerClient, type CookieOptionsWithName } from "@supabase/ssr";
+import { createServerClient, parseCookieHeader, type CookieOptionsWithName } from "@supabase/ssr";
 import type { AstroCookies } from "astro";
+import { SUPABASE_URL, SUPABASE_KEY, SUPABASE_SERVICE_ROLE_KEY } from "astro:env/server";
 
-import type { Database } from "../db/database.types.ts";
 import logger from "../lib/logger";
 
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseKey = import.meta.env.SUPABASE_KEY;
-const supabaseServiceRoleKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-
-export const createSupabaseClient = (url?: string, key?: string) => {
-  if (!url || !key) {
-    return null;
-  }
-
-  return createClient<Database>(url, key);
-};
-
-export const supabaseClient = createSupabaseClient(supabaseUrl, supabaseKey);
-export const supabaseServiceClient = createSupabaseClient(supabaseUrl, supabaseServiceRoleKey);
-
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey);
-export const isSupabaseServiceConfigured = Boolean(supabaseUrl && supabaseServiceRoleKey);
-
-export type SupabaseClient = BaseSupabaseClient<Database>;
-
-export const DEFAULT_USER_ID = "525b1489-40a7-470a-afc4-65f1aa737cfe";
+logger.info(
+  { url: SUPABASE_URL, key: SUPABASE_KEY, admin: SUPABASE_SERVICE_ROLE_KEY, mode: import.meta.env.MODE },
+  "[SUPABASE_URL] Initializing Supabase client with URL"
+);
 
 // Server-side Supabase client with cookie management
 export const cookieOptions: CookieOptionsWithName = {
   path: "/",
-  secure: import.meta.env.PROD, // Only secure in production
+  secure: true,
   httpOnly: true,
   sameSite: "lax",
 };
 
-function parseCookieHeader(cookieHeader: string): { name: string; value: string }[] {
-  return cookieHeader.split(";").map((cookie) => {
-    const [name, ...rest] = cookie.trim().split("=");
-    return { name, value: rest.join("=") };
-  });
+interface SupabaseContext {
+  headers: Headers;
+  cookies: AstroCookies;
 }
 
-export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
-  if (!supabaseUrl || !supabaseKey) {
-    logger.error(
-      {
-        hasUrl: Boolean(supabaseUrl),
-        hasKey: Boolean(supabaseKey),
-      },
-      "[Supabase] Missing configuration"
-    );
+import { createClient } from "@supabase/supabase-js";
+const createSupabaseInstance = (apiKey: string | undefined, context: SupabaseContext) => {
+  if (!apiKey) {
+    logger.warn({ hasServiceKey: Boolean(apiKey) }, "Supabase API key is not provided, will not create client");
     return null;
   }
 
-  logger.info({ url: supabaseUrl }, "[Supabase] Server client initialized");
+  // If this is the service role key, create a plain client that uses the
+  // service role for Authorization (bypasses RLS). The SSR helper attaches
+  // cookie-based auth and may use session auth instead of the provided key,
+  // which can cause RLS to apply.
+  if (apiKey === SUPABASE_SERVICE_ROLE_KEY) {
+    logger.info({ usingAdminClient: true }, "Creating Supabase admin client using service role key");
+    return createClient(SUPABASE_URL, apiKey);
+  }
 
-  const supabase = createServerClient<Database>(supabaseUrl, supabaseKey, {
+  return createServerClient(SUPABASE_URL, apiKey, {
     cookieOptions,
     cookies: {
+      // @ts-expect-error - correct implementation per Supabase docs
       getAll() {
-        return parseCookieHeader(context.headers.get("Cookie") ?? "");
+        const cookieHeader = context.headers.get("Cookie") ?? "";
+        return parseCookieHeader(cookieHeader);
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => context.cookies.set(name, value, options));
       },
     },
   });
+};
 
-  return supabase;
+export const createSupabaseServerInstance = (context: SupabaseContext) => {
+  return createSupabaseInstance(SUPABASE_KEY, context);
+};
+
+export const createSupabaseAdminInstance = (context: SupabaseContext) => {
+  return createSupabaseInstance(SUPABASE_SERVICE_ROLE_KEY, context);
 };

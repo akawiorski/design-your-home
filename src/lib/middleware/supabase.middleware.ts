@@ -1,5 +1,5 @@
 import { defineMiddleware } from "astro:middleware";
-import { supabaseClient, supabaseServiceClient, createSupabaseServerInstance } from "../../db/supabase.client";
+import { createSupabaseServerInstance, createSupabaseAdminInstance } from "../../db/supabase.client";
 
 /**
  * Supabase client setup middleware
@@ -11,14 +11,16 @@ import { supabaseClient, supabaseServiceClient, createSupabaseServerInstance } f
  */
 export const setupSupabase = defineMiddleware(async (context, next) => {
   // Create server-side Supabase instance with session context
-  const serverSupabase = createSupabaseServerInstance({
+
+  // Use server-side client with session context, fallback to basic client
+  context.locals.supabase = createSupabaseServerInstance({
     cookies: context.cookies,
     headers: context.request.headers,
   });
-
-  // Use server-side client with session context, fallback to basic client
-  context.locals.supabase = serverSupabase ?? supabaseClient;
-  context.locals.supabaseAdmin = supabaseServiceClient ?? supabaseClient;
+  context.locals.supabaseAdmin = createSupabaseAdminInstance({
+    cookies: context.cookies,
+    headers: context.request.headers,
+  });
 
   return next();
 });

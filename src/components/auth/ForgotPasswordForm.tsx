@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
-import { supabaseClient } from "../../db/supabase.client";
 import logger from "../../lib/logger";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,6 +24,9 @@ export default function ForgotPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const supabaseClient: any = null;
 
     if (!supabaseClient) {
       setFormError("Usługa jest chwilowo niedostępna.");

@@ -1,4 +1,5 @@
 import type { ErrorResponse } from "../../types";
+import logger from "../logger";
 
 /**
  * Helper function to create JSON response
@@ -36,7 +37,10 @@ export const errorResponse = (
  * Common error responses for reuse across endpoints
  */
 export const commonErrors = {
-  supabaseNotConfigured: () => errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured."),
+  supabaseNotConfigured: () => {
+    logger.error(new Error("SUPABASE_NOT_CONFIGURED"), "Supabase client is not configured.");
+    return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
+  },
 
   authenticationRequired: () =>
     errorResponse(401, "AUTHENTICATION_REQUIRED", "Authentication is required to access this resource."),

@@ -46,7 +46,7 @@ const paramsSchema = z.object({
  */
 export async function GET(context: APIContext) {
   const { locals, params } = context;
-  const supabase = locals.supabaseAdmin ?? locals.supabase;
+  const supabase = locals.supabase;
 
   if (!supabase) {
     return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase client is not configured.");
@@ -78,8 +78,13 @@ export async function GET(context: APIContext) {
       return errorResponse(403, "FORBIDDEN", "User does not own this room.");
     }
 
+    const supabaseAdmin = locals.supabaseAdmin;
+    if (!supabaseAdmin) {
+      return errorResponse(500, "SUPABASE_NOT_CONFIGURED", "Supabase admin client is not configured.");
+    }
+
     const [photos, counts] = await Promise.all([
-      getRoomPhotos(supabase, roomId),
+      getRoomPhotos(supabase, supabaseAdmin, roomId),
       getPhotoCountsByType(supabase, roomId),
     ]);
 

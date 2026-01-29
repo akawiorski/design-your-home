@@ -9,7 +9,7 @@ const envTestPath = ".env.test";
 if (!isCI && existsSync(envTestPath)) {
   dotenv.config({
     path: envTestPath,
-    override: false,
+    override: true,
   });
 }
 
@@ -44,16 +44,16 @@ export default defineConfig({
     video: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev",
+    command: "npm run dev:e2e",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      SUPABASE_URL: process.env.SUPABASE_URL ?? "",
-      SUPABASE_KEY: process.env.SUPABASE_KEY ?? "",
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-      OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY ?? "",
-      OPENROUTER_MODEL: process.env.OPENROUTER_MODEL ?? "",
+      SUPABASE_URL: process.env.SUPABASE_URL,
+      SUPABASE_KEY: process.env.SUPABASE_KEY,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+      OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
     },
   },
   projects: [

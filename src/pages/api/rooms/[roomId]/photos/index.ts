@@ -7,7 +7,7 @@ import { errorResponse, commonErrors } from "../../../../../lib/api/response.hel
 import { validateRoomId, validateAuth } from "../../../../../lib/api/validators";
 import { ListRoomPhotosCommand } from "../../../../../lib/commands/list-room-photos.command";
 import { ConfirmPhotoUploadCommand } from "../../../../../lib/commands/confirm-photo-upload.command";
-import { DEFAULT_USER_ID } from "../../../../../db/supabase.client";
+import logger from "@/lib/logger";
 
 export const prerender = false;
 
@@ -50,7 +50,7 @@ const bodySchema = z.object({
  */
 export async function GET(context: APIContext) {
   const { locals, params, url } = context;
-  const supabase = locals.supabaseAdmin ?? locals.supabase;
+  const supabase = locals.supabase;
 
   // Validate Supabase client
   if (!supabase) {
@@ -64,7 +64,7 @@ export async function GET(context: APIContext) {
   }
 
   // Validate authentication
-  const authValidation = validateAuth(locals.session?.user?.id ?? DEFAULT_USER_ID);
+  const authValidation = validateAuth(locals.session?.user?.id);
   if (!authValidation.valid) {
     return authValidation.error;
   }
@@ -73,8 +73,15 @@ export async function GET(context: APIContext) {
   const photoTypeParam = url.searchParams.get("photoType");
 
   // Execute command
+  const supabaseAdmin = locals.supabaseAdmin;
+  if (!supabaseAdmin) {
+    logger.error("Supabase admin client is not configured in locals");
+    return commonErrors.supabaseNotConfigured();
+  }
+
   const command = new ListRoomPhotosCommand(
     supabase,
+    supabaseAdmin,
     roomIdValidation.roomId,
     authValidation.userId,
     photoTypeParam ?? undefined
@@ -92,7 +99,7 @@ export async function GET(context: APIContext) {
  */
 export async function POST(context: APIContext) {
   const { locals, params, request } = context;
-  const supabase = locals.supabaseAdmin ?? locals.supabase;
+  const supabase = locals.supabase;
 
   // Validate Supabase client
   if (!supabase) {
@@ -127,8 +134,15 @@ export async function POST(context: APIContext) {
   }
 
   // Execute command
+  const supabaseAdmin = locals.supabaseAdmin;
+  if (!supabaseAdmin) {
+    return commonErrors.supabaseNotConfigured();
+  }
+
+  // Execute command
   const command = new ConfirmPhotoUploadCommand(
     supabase,
+    supabaseAdmin,
     roomIdValidation.roomId,
     authValidation.userId,
     parsedBody.data

@@ -1,5 +1,5 @@
 import type { APIContext } from "astro";
-import type { SupabaseClient } from "../../../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RoomPhotoDTO } from "../../../../types";
@@ -12,6 +12,7 @@ const buildContext = (overrides: Partial<APIContext> = {}): APIContext =>
   ({
     locals: {
       supabase: {} as SupabaseClient,
+      supabaseAdmin: {} as SupabaseClient,
       user: {
         id: "user-123",
       },

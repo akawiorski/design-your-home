@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "../../db/supabase.client";
+import { SupabaseClient } from "@supabase/supabase-js";
 import type { GetUploadUrlCommand, GetUploadUrlResponse, PhotoType } from "../../types";
 import { ValidationRules } from "../../types";
 import {
@@ -25,6 +25,7 @@ import { errorResponse } from "../api/response.helpers";
 export class GenerateUploadUrlCommand {
   constructor(
     private supabase: SupabaseClient,
+    private supabaseAdmin: SupabaseClient,
     private roomId: string,
     private userId: string
   ) {}
@@ -57,7 +58,7 @@ export class GenerateUploadUrlCommand {
       // Step 5: Create pending photo record
       await this.createPendingRecord(photoId, input.photoType, storagePath);
 
-      // Step 6: Generate presigned upload URL
+      // Step 6: Generate presigned upload URL (admin client)
       const uploadUrl = await this.generateUploadUrl(storagePath);
 
       // Step 7: Calculate expiration time
@@ -135,7 +136,7 @@ export class GenerateUploadUrlCommand {
    * Generate presigned upload URL
    */
   private async generateUploadUrl(storagePath: string): Promise<string> {
-    return generatePresignedUploadUrl(this.supabase, STORAGE_CONFIG.BUCKET_NAME, storagePath);
+    return generatePresignedUploadUrl(this.supabaseAdmin, STORAGE_CONFIG.BUCKET_NAME, storagePath);
   }
 
   /**

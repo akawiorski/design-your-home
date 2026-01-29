@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, envField } from "astro/config";
 
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
@@ -25,4 +25,34 @@ export default defineConfig({
     },
   },
   adapter: adapter,
+  env: {
+    schema: {
+      SUPABASE_URL: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      SUPABASE_KEY: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      SUPABASE_SERVICE_ROLE_KEY: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      OPENROUTER_API_KEY: envField.string({
+        context: "server",
+        access: "secret",
+      }),
+      ENV_NAME: envField.string({
+        context: "server",
+        access: "secret",
+        optional: true,
+      }),
+      PUBLIC_ENV_NAME: envField.string({
+        context: "server",
+        access: "secret",
+        optional: true,
+      }),
+    },
+  },
 });

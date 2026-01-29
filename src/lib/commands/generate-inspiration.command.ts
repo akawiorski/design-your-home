@@ -22,6 +22,7 @@ export class GenerateInspirationCommand {
 
   constructor(
     private supabase: SupabaseClient,
+    private supabaseAdmin: SupabaseClient,
     private roomId: string,
     private userId: string,
     private prompt?: string
@@ -47,7 +48,7 @@ export class GenerateInspirationCommand {
       }
 
       // Step 2: Get photos and validate requirements
-      const photos = await getRoomPhotos(this.supabase, this.roomId);
+      const photos = await getRoomPhotos(this.supabase, this.supabaseAdmin, this.roomId);
       const roomPhotos = photos.filter((photo) => photo.photoType === "room");
       const inspirationPhotos = photos.filter((photo) => photo.photoType === "inspiration");
 

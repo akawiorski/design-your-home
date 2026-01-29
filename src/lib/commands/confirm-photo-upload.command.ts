@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "../../db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CreateRoomPhotoCommand, RoomPhotoDTO } from "../../types";
 import { verifyRoomOwnership, confirmPhotoUpload } from "../services/photos.service";
 import { errorResponse, jsonResponse } from "../api/response.helpers";
@@ -15,6 +15,7 @@ import { errorResponse, jsonResponse } from "../api/response.helpers";
 export class ConfirmPhotoUploadCommand {
   constructor(
     private supabase: SupabaseClient,
+    private supabaseAdmin: SupabaseClient,
     private roomId: string,
     private userId: string,
     private payload: CreateRoomPhotoCommand
@@ -33,7 +34,7 @@ export class ConfirmPhotoUploadCommand {
       }
 
       // Confirm photo upload
-      const confirmedPhoto = await confirmPhotoUpload(this.supabase, {
+      const confirmedPhoto = await confirmPhotoUpload(this.supabase, this.supabaseAdmin, {
         photoId: this.payload.photoId,
         roomId: this.roomId,
         photoType: this.payload.photoType,
