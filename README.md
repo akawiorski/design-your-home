@@ -155,7 +155,11 @@ The project uses GitHub Actions for CI and Cloudflare Pages for production deplo
 
 CI and build steps require the same environment variables as local E2E and production builds.
 
-The production site is deployed to Cloudflare Pages. The GitHub Actions `Deploy to Cloudflare Pages` step posts the deployment result in the workflow run output; you can find the deployment link in that step's logs in the workflow run (see the `deploy` job in `.github/workflows/master.yml`).
+The production site is deployed to Cloudflare Pages. The GitHub Actions `Deploy to Cloudflare Pages` step posts the deployment result in the workflow run output; you can find the deployment lates link in that step's logs in the workflow run (see the `deploy` job in `.github/workflows/master.yml`).
+
+The live site is available at: https://design-your-home-qdb.pages.dev/.
+
+You can create an account on the site; note that email addresses are not verified at this time (signup creates an account without email confirmation).
 
 ## Project scope
 

@@ -43,6 +43,10 @@ export default defineConfig({
         context: "server",
         access: "secret",
       }),
+      OPENROUTER_MODEL: envField.string({
+        context: "server",
+        access: "secret",
+      }),
       ENV_NAME: envField.string({
         context: "server",
         access: "secret",
