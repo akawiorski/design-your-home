@@ -192,6 +192,6 @@ MVP is in development.
 
 ## License
 
-No license has been specified yet.
+This project is released under the MIT License. See the `LICENSE` file for full terms.
 
-If you intend this repository to be open source, add a `LICENSE` file (e.g., MIT) and set the `license` field in `package.json`.
+The `license` field in `package.json` is set to `MIT`.

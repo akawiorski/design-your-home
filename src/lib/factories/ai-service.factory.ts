@@ -30,8 +30,8 @@ export function createAIService(modelName?: string): OpenRouterService {
  * Create service for inspiration generation (uses specific model)
  */
 export function createAIServiceForInspiration(): OpenRouterService {
-  const apiKey = import.meta.env.OPENROUTER_API_KEY;
-  const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
+  const apiKey = OPENROUTER_API_KEY;
+  const baseUrl = AI_CONFIG.DEFAULT_BASE_URL;
 
   if (!apiKey) {
     throw new AIConfigurationError("OpenRouter API key not configured");
@@ -50,9 +50,9 @@ export function createAIServiceForInspiration(): OpenRouterService {
  * Create service for simple advice generation
  */
 export function createAIServiceForSimpleAdvice(): OpenRouterService {
-  const apiKey = import.meta.env.OPENROUTER_API_KEY;
-  const modelName = import.meta.env.OPENROUTER_MODEL;
-  const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
+  const apiKey = OPENROUTER_API_KEY;
+  const modelName = OPENROUTER_MODEL;
+  const baseUrl = AI_CONFIG.DEFAULT_BASE_URL;
 
   if (!apiKey || !modelName) {
     throw new AIConfigurationError("OpenRouter configuration is missing");
