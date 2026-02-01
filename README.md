@@ -11,7 +11,8 @@ Home Inspiration Generator is a web app that helps users generate realistic inte
 5. [Available scripts](#available-scripts)
 6. [Project scope](#project-scope)
 7. [Project status](#project-status)
-8. [License](#license)
+8. [CI/CD pipelines](#cicd-pipelines)
+9. [License](#license)
 
 ## Project name
 
@@ -98,15 +99,18 @@ npm run preview
 
 ## Available scripts
 
-| Script             | Description                          |
-| ------------------ | ------------------------------------ |
-| `npm run dev`      | Start Astro dev server               |
-| `npm run build`    | Build for production                 |
-| `npm run preview`  | Preview the production build locally |
-| `npm run astro`    | Run the Astro CLI                    |
-| `npm run lint`     | Run ESLint                           |
-| `npm run lint:fix` | Fix ESLint issues                    |
-| `npm run format`   | Format files with Prettier           |
+| Script              | Description                                  |
+| ------------------- | -------------------------------------------- |
+| `npm run dev`       | Start Astro dev server                       |
+| `npm run build`     | Build for production                         |
+| `npm run preview`   | Preview the production build locally         |
+| `npm run astro`     | Run the Astro CLI                            |
+| `npm run lint`      | Run ESLint                                   |
+| `npm run lint:fix`  | Fix ESLint issues                            |
+| `npm run format`    | Format files with Prettier                   |
+| `npm run test`      | Run unit & component tests (Vitest)          |
+| `npm run dev:e2e`   | Start dev server in E2E mode                 |
+| `npm run test:e2e`  | Run Playwright E2E tests                     |
 
 ## Testing
 
@@ -118,9 +122,40 @@ npm run test
 
 Testy jednostkowe i komponentowe są uruchamiane przez Vitest (z wykorzystaniem Testing Library i środowiska jsdom).
 
-### E2E tests (recommended)
+### E2E tests (Playwright)
 
-Testy E2E są rekomendowane w planie testów, ale nie są jeszcze skonfigurowane w repozytorium.
+E2E tests are configured with Playwright and run against a local dev server started in E2E mode.
+
+**Requirements**
+
+- Create `.env.test` from `.env.example`
+- Provide required variables (see list below)
+
+**Required env vars (E2E)**
+
+- `SUPABASE_URL`
+- `SUPABASE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `OPENROUTER_API_KEY`
+- `OPENROUTER_MODEL`
+
+**Run locally**
+
+```bash
+npm run test:e2e
+```
+
+## CI/CD pipelines
+
+The project uses GitHub Actions for CI and Cloudflare Pages for production deployments:
+
+- **CI (lint, unit, e2e, build):** runs on `main` and `develop`
+- **PR checks (lint, unit, e2e):** runs on pull requests to `main` or `develop`
+- **Production deploy:** runs on `main`
+
+CI and build steps require the same environment variables as local E2E and production builds.
+
+The production site is deployed to Cloudflare Pages. The GitHub Actions `Deploy to Cloudflare Pages` step posts the deployment result in the workflow run output; you can find the deployment link in that step's logs in the workflow run (see the `deploy` job in `.github/workflows/master.yml`).
 
 ## Project scope
 

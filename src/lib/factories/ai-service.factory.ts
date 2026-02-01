@@ -1,6 +1,7 @@
 import { OpenRouterService } from "../services/openrouter.service";
 import { AI_CONFIG } from "../config/ai.config";
 import { errorResponse } from "../api/response.helpers";
+import { OPENROUTER_API_KEY, OPENROUTER_MODEL } from "astro:env/server";
 
 /**
  * Create OpenRouter service instance with validation
@@ -8,9 +9,9 @@ import { errorResponse } from "../api/response.helpers";
  * @returns Configured OpenRouter service
  */
 export function createAIService(modelName?: string): OpenRouterService {
-  const apiKey = import.meta.env.OPENROUTER_API_KEY;
-  const configuredModelName = modelName ?? import.meta.env.OPENROUTER_MODEL;
-  const baseUrl = import.meta.env.OPENROUTER_BASE_URL ?? AI_CONFIG.DEFAULT_BASE_URL;
+  const apiKey = OPENROUTER_API_KEY;
+  const configuredModelName = modelName ?? OPENROUTER_MODEL;
+  const baseUrl = AI_CONFIG.DEFAULT_BASE_URL;
 
   if (!apiKey || !configuredModelName) {
     throw new AIConfigurationError("OpenRouter API key or model not configured");
