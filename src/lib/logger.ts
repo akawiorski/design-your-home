@@ -32,7 +32,15 @@ if (!isSSR) {
       logger = fallback;
     }
   } else {
-    logger = pino({ level: LOG_LEVEL });
+    // Production: JSON output optimized for Cloudflare Pages
+    logger = pino({
+      level: LOG_LEVEL,
+      formatters: {
+        level: (label) => ({ level: label }),
+      },
+      timestamp: pino.stdTimeFunctions.isoTime,
+      base: undefined, // Remove pid and hostname for cleaner Cloudflare logs
+    });
   }
 }
 
