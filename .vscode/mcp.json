@@ -1,13 +1,9 @@
 {
-	"servers": {
-		"my-mcp-server-562bcb4f": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"-y",
-				"@przeprogramowani/10x-mvp-tracker@latest"
-			]
-		}
-	},
-	"inputs": []
+  "mcpServers": {
+    "10x-mvp-tracker": {
+      "command": "npx",
+      "args": ["-y", "@przeprogramowani/10x-mvp-tracker@latest"],
+      "transport": "stdio"
+    }
+  }
 }
