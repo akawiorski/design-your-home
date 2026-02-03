@@ -351,6 +351,8 @@ export class OpenRouterService {
         throw new Error("OpenRouter request timeout.");
       }
 
+      logger.error({ error }, "openrouter.error");
+
       throw error instanceof Error ? error : new Error("OpenRouter request failed.");
     } finally {
       clearTimeout(timeout);

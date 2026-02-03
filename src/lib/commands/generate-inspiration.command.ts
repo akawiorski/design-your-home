@@ -113,14 +113,17 @@ export class GenerateInspirationCommand {
    * Log request details
    */
   private logRequest(roomPhotosCount: number, inspirationPhotosCount: number): void {
-    logger.info("generate.inspiration.request", {
-      roomId: this.roomId,
-      userId: this.userId,
-      promptLength: this.prompt?.length ?? 0,
-      roomPhotosCount,
-      inspirationPhotosCount,
-      requestId: this.requestId,
-    });
+    logger.info(
+      {
+        roomId: this.roomId,
+        userId: this.userId,
+        promptLength: this.prompt?.length ?? 0,
+        roomPhotosCount,
+        inspirationPhotosCount,
+        requestId: this.requestId,
+      },
+      "generate.inspiration.request"
+    );
   }
 
   /**
