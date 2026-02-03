@@ -25,7 +25,7 @@ describe("analytics.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         insert: mockInsert,
-      } as unknown as any);
+      } as unknown as ReturnType<SupabaseClient["from"]>);
 
       const result = await trackEvent(mockSupabase, "user-1", "RoomCreated", { roomId: "room-1" });
 
@@ -50,7 +50,7 @@ describe("analytics.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         insert: mockInsert,
-      } as unknown as any);
+      } as unknown as ReturnType<SupabaseClient["from"]>);
 
       await expect(trackEvent(mockSupabase, "user-1", "RoomCreated", {})).rejects.toThrow(
         "Failed to track analytics event: Database error"
