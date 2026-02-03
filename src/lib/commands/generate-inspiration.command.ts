@@ -56,6 +56,7 @@ export class GenerateInspirationCommand {
 
       const validationError = this.validatePhotoRequirements(roomPhotos.length, inspirationPhotos.length);
       if (validationError) {
+        logger.error({ validationError }, "generate.inspiration.validation_error");
         return validationError;
       }
 

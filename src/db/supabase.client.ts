@@ -1,4 +1,7 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+export type { SupabaseClient };
 import { createServerClient, parseCookieHeader, type CookieOptionsWithName } from "@supabase/ssr";
+
 import type { AstroCookies } from "astro";
 import { SUPABASE_URL, SUPABASE_KEY, SUPABASE_SERVICE_ROLE_KEY } from "astro:env/server";
 
@@ -22,7 +25,8 @@ interface SupabaseContext {
   cookies: AstroCookies;
 }
 
-import { createClient } from "@supabase/supabase-js";
+// Already imported above
+
 const createSupabaseInstance = (apiKey: string | undefined, context: SupabaseContext) => {
   if (!apiKey) {
     logger.warn({ hasServiceKey: Boolean(apiKey) }, "Supabase API key is not provided, will not create client");

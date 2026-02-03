@@ -66,6 +66,7 @@ export class OpenRouterService {
     this.validateInput(input);
 
     // Convert image URLs to base64
+    logger.info({}, "Converting image URLs to base64");
     const roomPhotoBase64 = await this.fetchImageAsBase64(input.roomPhoto.url);
     const inspirationPhotosBase64 = await Promise.all(
       input.inspirationPhotos.map(async (photo) => ({
@@ -89,6 +90,8 @@ export class OpenRouterService {
       top_p: this.defaultParams.top_p ?? 0.9,
       max_tokens: this.defaultParams.max_tokens ?? 800,
     };
+
+    logger.info({ payload }, "Generated payload for OpenRouter");
 
     const response = await this.callOpenRouter(payload);
     const parsed = this.mapResponseToDto(response);

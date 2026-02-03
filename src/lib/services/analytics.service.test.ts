@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SupabaseClient } from "../../db/supabase.client";
 import { trackEvent, isSupportedEventType } from "./analytics.service";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 describe("analytics.service", () => {
   let mockSupabase: SupabaseClient;
@@ -25,7 +25,7 @@ describe("analytics.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         insert: mockInsert,
-      } as ReturnType<typeof mockSupabase.from>);
+      } as unknown as any);
 
       const result = await trackEvent(mockSupabase, "user-1", "RoomCreated", { roomId: "room-1" });
 
@@ -50,7 +50,7 @@ describe("analytics.service", () => {
 
       vi.mocked(mockSupabase.from).mockReturnValue({
         insert: mockInsert,
-      } as ReturnType<typeof mockSupabase.from>);
+      } as unknown as any);
 
       await expect(trackEvent(mockSupabase, "user-1", "RoomCreated", {})).rejects.toThrow(
         "Failed to track analytics event: Database error"
