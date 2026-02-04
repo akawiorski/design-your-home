@@ -137,6 +137,7 @@ export class GenerateInspirationCommand {
         roomId: this.roomId,
         userId: this.userId,
         err: error instanceof Error ? error : new Error(String(error)),
+        errorMessage: error instanceof Error ? error.message : String(error),
       },
       "generate.inspiration failed"
     );
