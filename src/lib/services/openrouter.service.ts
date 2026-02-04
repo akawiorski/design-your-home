@@ -66,14 +66,20 @@ export class OpenRouterService {
     this.validateInput(input);
 
     // Convert image URLs to base64
-    logger.info({}, "Converting image URLs to base64");
+    logger.info(
+      { roomUrl: input.roomPhoto.url, inspirationUrls: input.inspirationPhotos.map((photo) => photo.url) },
+      "Converting image URLs to base64"
+    );
     const roomPhotoBase64 = await this.fetchImageAsBase64(input.roomPhoto.url);
+    logger.info({}, "Room photo base64");
     const inspirationPhotosBase64 = await Promise.all(
       input.inspirationPhotos.map(async (photo) => ({
         base64: await this.fetchImageAsBase64(photo.url),
         description: photo.description,
       }))
     );
+
+    logger.info({}, "Inspiration photos base64");
 
     const payload = {
       model: "google/gemini-2.5-flash-image",
