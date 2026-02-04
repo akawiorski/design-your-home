@@ -522,8 +522,10 @@ export class OpenRouterService {
         throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
       }
       const arrayBuffer = await response.arrayBuffer();
-      const base64 = Buffer.from(arrayBuffer).toString("base64");
-      return base64;
+      const uint8Array = new Uint8Array(arrayBuffer);
+      let binary = "";
+      uint8Array.forEach((byte) => (binary += String.fromCharCode(byte)));
+      return btoa(binary);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       throw new Error(`Failed to convert image to base64: ${message}`);
